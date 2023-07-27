@@ -23,8 +23,8 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    PaintableScene *scene;
-    QList<QGraphicsItem*> regions;
+    PaintableScene *_scene;
+    QList<QGraphicsItem*> _regions;
 
 };
 #endif // MAINWINDOW_H
