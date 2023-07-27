@@ -2,7 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 #include "paintablescene.h"
+#include "region.h"
+#include "clan.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,10 +24,18 @@ private slots:
 
     void slotPainting(QGraphicsSceneMouseEvent *mouseEvent);
 
+    void on_addClans_clicked();
+
+    void on_start_clicked();
+
+    void run();
 private:
     Ui::MainWindow *ui;
     PaintableScene *_scene;
-    QList<QGraphicsItem*> _regions;
+    int _heightWorld, _widthWorld;
+    QList<Region*> _regions;
+    QList<Clan*> _clans;
+    QTimer _timer;
 
 };
 #endif // MAINWINDOW_H

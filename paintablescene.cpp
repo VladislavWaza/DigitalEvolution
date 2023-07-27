@@ -9,8 +9,11 @@ PaintableScene::PaintableScene(QObject *parent)
 
 void PaintableScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    _isPressed = true;
-    emit signalPainting(mouseEvent);
+    if (mouseEvent->button() == Qt::RightButton)
+    {
+        _isPressed = true;
+        emit signalPainting(mouseEvent);
+    }
     QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
@@ -23,6 +26,7 @@ void PaintableScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
 void PaintableScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    _isPressed = false;
+    if (mouseEvent->button() == Qt::RightButton)
+        _isPressed = false;
     QGraphicsScene::mousePressEvent(mouseEvent);
 }
