@@ -4,8 +4,7 @@
 QPoint const Clan::_directions[] = {QPoint(-1, 0), QPoint(-1, -1), QPoint(0, -1),
                                 QPoint(1, -1), QPoint(1, 0), QPoint(1, 1), QPoint(0, 1), QPoint(-1, 1)};
 
-Clan::Clan(GenomeInitType genomeInitType, QGraphicsItem *parent)
-    :QGraphicsRectItem(parent)
+Clan::Clan(GenomeInitType genomeInitType)
 {
     _genom = new uint8_t[_size];
     if (genomeInitType == GenomeInitType::Random)
@@ -19,7 +18,7 @@ Clan::~Clan()
 {
 }
 
-Clan::getGenom(uint8_t *ptr) const
+void Clan::getGenom(uint8_t *ptr) const
 {
     for (int i = 0; i < _size; ++i)
         ptr[i] = _genom[i];

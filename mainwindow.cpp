@@ -1,16 +1,16 @@
 #include <QRandomGenerator>
 #include <QTime>
+#include <QGraphicsPixmapItem>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "graphicsviewzoom.h"
 /*надо сделать
  *выбор кисти биома и сохранение биома в Region
- *передаелть алгортим генерации места клана при добавлении
  *ускорить итерации
  *интерфейс отобржения шагов и блокировка части интерфейса при выполнении
- *QImage вместо Items bits()
  *сетка - drawBackground
- *
+ *блокирование операций над миром вне паузы
+ *переписать slotPainting
  */
 
 
@@ -29,9 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     //настройка graphicsView
     ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
-    //ui->graphicsView->setRenderHint(QPainter::Antialiasing);
-    //ui->graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
-    //ui->graphicsView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    ui->graphicsView->setRenderHint(QPainter::SmoothPixmapTransform);
 
     //создаем сцену и соединяем со слотом рисовния
     _scene = new PaintableScene(this);
@@ -52,15 +50,19 @@ MainWindow::MainWindow(QWidget *parent)
 
     //число кланов
     ui->numberClans->setMinimum(1);
-    ui->numberClans->setMaximum(10000);
+    ui->numberClans->setMaximum(100000);
 
-    _world = new World(_squareSide);
+    _world = new World;
+    _clansItem = new QGraphicsPixmapItem;
+    _regionsItem = new QGraphicsPixmapItem;
 }
 
 MainWindow::~MainWindow()
 {
     disconnect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
     delete _world;
+    delete _clansItem;
+    delete _regionsItem;
     delete ui;
     delete _scene;
 }
@@ -68,16 +70,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_createWorld_clicked()
 {
+    delete _clansItem;
+    delete _regionsItem;
     delete _world;
-    _regions.clear();
     _scene->clear();
 
     //создаем пустой мир
-    _heightWorld = ui->heightWorld->value();
-    _widthWorld = ui->widthWorld->value();
-    _world = new World(_squareSide, _widthWorld, _heightWorld);
-    _scene->setSceneRect(0, 0, _widthWorld * _squareSide, _heightWorld * _squareSide);
-    _scene->setBackgroundBrush(Qt::blue);
+    _world = new World(ui->widthWorld->value(), ui->heightWorld->value());
+    _scene->setSceneRect(0, 0, _world->width(), _world->height());
     _clansNumber = 0;
 
     //разблокируем часть интерфейса
@@ -90,21 +90,21 @@ void MainWindow::on_createWorld_clicked()
     ui->numberClans->setEnabled(true);
 
     //заполняем мир
-    QBrush brush(Qt::gray);
-    QPen pen;
-    pen.setWidthF(0.25);
-    Region* item;
-    for (int i = 0; i < _widthWorld; ++i)
+    QImage regionsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    for (int i = 0; i < _world->width(); ++i)
     {
-        for (int j = 0; j < _heightWorld; ++j)
+        for (int j = 0; j < _world->height(); ++j)
         {
-            item = new Region(i*_squareSide, j*_squareSide, _squareSide, _squareSide);
-            item->setBrush(brush);
-            item->setPen(pen);
-            _regions.append(item);
-            _scene->addItem(item);
+            regionsImage.setPixelColor(i,j, Qt::gray);
+            clansImage.setPixelColor(i,j, QColor(0,0,0,0));
         }
     }
+
+    //помещаем изображения на сцену
+    _regionsItem =_scene->addPixmap(QPixmap::fromImage(regionsImage));
+    _clansItem =_scene->addPixmap(QPixmap::fromImage(clansImage));
+    _clansItem->setZValue(1); //кланы располагаем на слой выше
 }
 
 void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
@@ -128,33 +128,29 @@ void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
 void MainWindow::on_addClans_clicked()
 {
     int n = ui->numberClans->value();
-    QBrush brush(Qt::yellow);
-    QPen pen;
-    pen.setWidthF(0.25);
-    Clan* item;
 
-    if (_clansNumber + n >= _widthWorld * _heightWorld)
-        n = _widthWorld * _heightWorld - _clansNumber;
-
+    //запрашиваем совобдные места
     QList<int> emptySpaces;
     _world->getNumsOfEmptySpaces(emptySpaces);
-    emptySpaces = sample(emptySpaces, n);
 
+    if (emptySpaces.size() < n)
+        n = emptySpaces.size();
+    else
+        emptySpaces = sample(emptySpaces, n); //случайно выбираем n мест
+
+    QImage clansImage = _clansItem->pixmap().toImage();
+
+    Clan* clan;
     for (int i = 0; i < n; ++i)
     {
-        int x = emptySpaces[i] / _heightWorld;
-        int y = emptySpaces[i] % _heightWorld;
-        item = new Clan();
-        item->setRect(_squareSide*x, _squareSide*y, _squareSide, _squareSide);
-        item->setBrush(brush);
-        item->setPen(pen);
-        item->setZValue(1); //кланы будут на слой выше чем регионы
-
-        _world->addItem(x, y, item);
+        int x = emptySpaces[i] / _world->height();
+        int y = emptySpaces[i] % _world->height();
+        clansImage.setPixelColor(x,y,Qt::darkCyan);
+        clan = new Clan;
+        _world->addClan(x, y, clan);
         ++_clansNumber;
-        _scene->addItem(item);
     }
-
+    _clansItem->setPixmap(QPixmap::fromImage(clansImage));
     ui->start->setEnabled(true);
 }
 
@@ -176,7 +172,9 @@ void MainWindow::run()
 {
     if (_ms == 0)
         _ms = QTime::currentTime().msecsSinceStartOfDay();
-    _world->run();
+    QImage clansImage = _clansItem->pixmap().toImage();
+    _world->run(clansImage);
+    _clansItem->setPixmap(QPixmap::fromImage(clansImage));
     ui->label_5->setNum(ui->label_5->text().toInt() + 1);
     qDebug() << QTime::currentTime().msecsSinceStartOfDay() - _ms;
     _ms = QTime::currentTime().msecsSinceStartOfDay();

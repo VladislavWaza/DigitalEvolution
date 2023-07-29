@@ -1,16 +1,15 @@
 #ifndef CLAN_H
 #define CLAN_H
+#include <QPoint>
 
-#include <QGraphicsRectItem>
-
-class Clan : public QGraphicsRectItem
+class Clan
 {
 public:
     enum class GenomeInitType{Random};
-    Clan(GenomeInitType genomeInitType = GenomeInitType::Random, QGraphicsItem *parent = nullptr);
+    Clan(GenomeInitType genomeInitType = GenomeInitType::Random);
     ~Clan();
 
-    getGenom(uint8_t *ptr) const;
+    void getGenom(uint8_t *ptr) const;
 
     static const int _size = 8; //должно делиться на 4
     static const QPoint _directions[];

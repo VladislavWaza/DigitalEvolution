@@ -1,14 +1,34 @@
-#include <QGraphicsScene>
 #include "world.h"
 
-World::World(int squareSide, int w, int h)
-    :_clans(w*h), _w(w), _h(h), _squareSide(squareSide)
+World::World(int w, int h)
+    :_clans(w*h), _w(w), _h(h)
 {
 }
 
-void World::addItem(int x, int y, Clan* clan)
+World::~World()
 {
+    for (int i = 0; i < _w * _h; ++i)
+        delete _clans[i];
+}
+
+int World::width()
+{
+    return _w;
+}
+
+int World::height()
+{
+    return _h;
+}
+
+bool World::addClan(int x, int y, Clan* clan)
+{
+    if (x < 0 || x >= _w || y < 0 || y >= _h)
+        return false;
+    if (_clans[x * _h + y])
+        return false;
     _clans[x * _h + y] = clan;
+    return true;
 }
 
 void World::getNumsOfEmptySpaces(QList<int> &list)
@@ -21,9 +41,10 @@ void World::getNumsOfEmptySpaces(QList<int> &list)
     }
 }
 
-void World::run()
+bool World::run(QImage &img)
 {
-    int counter = 0;
+    if (img.height() != _h || img.width() != _w)
+        return false;
     QList<Clan*> newClans(_clans);
     QPoint curPoint, newPoint;
     Clan *clan;
@@ -35,7 +56,6 @@ void World::run()
             clan = _clans[x * _h + y];
             if (clan)
             {
-                ++counter;
                 clan->getGenom(genom);
                 curPoint.rx() = x;
                 curPoint.ry() = y;
@@ -62,10 +82,14 @@ void World::run()
                         newClans[curPoint.x() * _h + curPoint.y()] = clan;
                     }
                 }
-                clan->setRect(curPoint.x() * _squareSide, curPoint.y() * _squareSide, _squareSide, _squareSide);
+                if (curPoint.x() != x || curPoint.y() != y)
+                {
+                    img.setPixelColor(curPoint.x(),curPoint.y(),img.pixelColor(x,y));
+                    img.setPixelColor(x,y,QColor(0,0,0,0));
+                }
             }
         }
     }
     _clans = newClans;
-    qDebug() << counter;
+    return true;
 }

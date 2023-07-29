@@ -1,4 +1,3 @@
-#include <QAbstractGraphicsShapeItem>
 #include "paintablescene.h"
 
 PaintableScene::PaintableScene(QObject *parent)
