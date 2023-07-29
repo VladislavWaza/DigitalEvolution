@@ -11,6 +11,21 @@
  *сетка - drawBackground
  *блокирование операций над миром вне паузы
  *переписать slotPainting
+ *
+ *
+ *Идеи по функционалу клана
+ *модификаторы на атаку/защиту/добычу/перемещение, в виде множителя, но если лучше одно то чуже другое
+ *свой/чужой?
+ *
+ *переход
+ *набег, вымогтальсто(не заврешает?)
+ *торговля или сотрудничество(не заврешают?)
+ *собирательстов или охота
+ *
+ *
+ *Идеи по функционалу регионов
+ *прибрежные районы лучше
+ *истощение
  */
 
 
@@ -31,14 +46,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
     ui->graphicsView->setRenderHint(QPainter::SmoothPixmapTransform);
 
-    //создаем сцену и соединяем со слотом рисовния
+    //создаем сцену и соединяем со слотом рисовния и нажатия средней клавиши
     _scene = new PaintableScene(this);
     ui->graphicsView->setScene(_scene);
     connect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
+    connect(_scene, &PaintableScene::signalMidButton, this, &MainWindow::slotMidButton);
 
     //параметры мира
-    ui->heightWorld->setMaximum(1000);
-    ui->widthWorld->setMaximum(1000);
+    ui->heightWorld->setMaximum(10000);
+    ui->widthWorld->setMaximum(10000);
     ui->heightWorld->setMinimum(50);
     ui->widthWorld->setMinimum(50);
 
@@ -50,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     //число кланов
     ui->numberClans->setMinimum(1);
-    ui->numberClans->setMaximum(100000);
+    ui->numberClans->setMaximum(5000000);
 
     _world = new World;
     _clansItem = new QGraphicsPixmapItem;
@@ -60,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     disconnect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
+    disconnect(_scene, &PaintableScene::signalMidButton, this, &MainWindow::slotMidButton);
     delete _world;
     delete _clansItem;
     delete _regionsItem;
@@ -107,23 +124,6 @@ void MainWindow::on_createWorld_clicked()
     _clansItem->setZValue(1); //кланы располагаем на слой выше
 }
 
-void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
-{
-    if (ui->brushDiameter->isEnabled())
-    {
-        QPainterPath circle;
-        circle.addEllipse(mouseEvent->scenePos(), ui->brushDiameter->value()/2, ui->brushDiameter->value()/2);
-        QList<QGraphicsItem*> items = _scene->items(circle, Qt::IntersectsItemShape, Qt::DescendingOrder);
-        for (QGraphicsItem* item : items)
-        {
-            if (item->type() == QGraphicsRectItem::Type && item->zValue() == 0)
-            {
-                QGraphicsRectItem *rect = static_cast<QGraphicsRectItem*>(item);
-                rect->setBrush(Qt::white);
-            }
-        }
-    }
-}
 
 void MainWindow::on_addClans_clicked()
 {
@@ -178,6 +178,33 @@ void MainWindow::run()
     ui->label_5->setNum(ui->label_5->text().toInt() + 1);
     qDebug() << QTime::currentTime().msecsSinceStartOfDay() - _ms;
     _ms = QTime::currentTime().msecsSinceStartOfDay();
+}
+
+void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
+{
+    if (ui->brushDiameter->isEnabled())
+    {
+        QImage image = _regionsItem->pixmap().toImage();
+        QPainterPath circle;
+        circle.addEllipse(mouseEvent->scenePos(), ui->brushDiameter->value()/2, ui->brushDiameter->value()/2);
+        for (int x = 0; x < image.width(); ++x)
+        {
+            for (int y = 0; y < image.height(); ++y)
+            {
+                if (circle.contains(QPointF(x, y)))
+                    image.setPixelColor(x, y, Qt::white);
+            }
+        }
+        _regionsItem->setPixmap(QPixmap::fromImage(image));
+    }
+}
+
+void MainWindow::slotMidButton(QGraphicsSceneMouseEvent *mouseEvent)
+{
+    int x = mouseEvent->scenePos().x();
+    int y = mouseEvent->scenePos().y();
+    qDebug() << x << y;
+
 }
 
 QVector<int> MainWindow::sample(QVector<int> &seq, int count)

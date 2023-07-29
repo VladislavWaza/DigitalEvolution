@@ -15,6 +15,7 @@ public:
     explicit PaintableScene(QObject *parent = nullptr);
 signals:
     void signalPainting(QGraphicsSceneMouseEvent *mouseEvent);
+    void signalMidButton(QGraphicsSceneMouseEvent *mouseEvent);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);

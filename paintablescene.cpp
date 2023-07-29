@@ -13,6 +13,8 @@ void PaintableScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         _isPressed = true;
         emit signalPainting(mouseEvent);
     }
+    if (mouseEvent->button() == Qt::MiddleButton)
+        emit signalMidButton(mouseEvent);
     QGraphicsScene::mousePressEvent(mouseEvent);
 }
 

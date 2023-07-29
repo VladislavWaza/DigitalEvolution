@@ -22,14 +22,13 @@ public:
 
 private slots:
     void on_createWorld_clicked();
-
-    void slotPainting(QGraphicsSceneMouseEvent *mouseEvent);
-
     void on_addClans_clicked();
-
     void on_start_clicked();
 
     void run();
+
+    void slotPainting(QGraphicsSceneMouseEvent *mouseEvent);
+    void slotMidButton(QGraphicsSceneMouseEvent *mouseEvent);
 
     QVector<int> sample(QVector<int>& seq, int count);
 private:
