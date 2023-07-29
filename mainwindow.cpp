@@ -29,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     //добавляем зум
     GraphicsViewZoom* zoom = new GraphicsViewZoom(ui->graphicsView);
     zoom->setModifiers(Qt::NoModifier);
+
+    //настройка graphicsView
     ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
     //ui->graphicsView->setRenderHint(QPainter::Antialiasing);
     //ui->graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
@@ -55,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->numberClans->setMinimum(1);
     ui->numberClans->setMaximum(10000);
 
-    _world = new World();
+    _world = new World(_squareSide);
 }
 
 MainWindow::~MainWindow()
@@ -71,17 +73,18 @@ void MainWindow::on_createWorld_clicked()
 {
     delete _world;
     _regions.clear();
-    _clans.clear();
     _scene->clear();
 
     //создаем пустой мир
     _heightWorld = ui->heightWorld->value();
     _widthWorld = ui->widthWorld->value();
     _world = new World(_widthWorld, _heightWorld);
-    _scene->setSceneRect(0, 0, _widthWorld * 5, _heightWorld * 5);
+    _scene->setSceneRect(0, 0, _widthWorld * _squareSide, _heightWorld * _squareSide);
     _scene->setBackgroundBrush(Qt::blue);
-    ui->label_5->setNum(0);
+    _clansNumber = 0;
 
+
+    ui->label_5->setNum(0);
     //разблокируем часть интерфейса
     ui->brushDiameter->setEnabled(true);
     ui->label_3->setEnabled(true);
@@ -99,7 +102,7 @@ void MainWindow::on_createWorld_clicked()
     {
         for (int j = 0; j < _heightWorld; ++j)
         {
-            item = new Region(i*5, j*5, 5, 5);
+            item = new Region(i*_squareSide, j*_squareSide, _squareSide, _squareSide);
             item->setBrush(brush);
             item->setPen(pen);
             _regions.append(item);
@@ -136,7 +139,7 @@ void MainWindow::on_addClans_clicked()
     Clan* item;
     for (int i = 0; i < n; ++i)
     {
-        if (_clans.size() == _widthWorld * _heightWorld)
+        if (_clansNumber == _widthWorld * _heightWorld)
             break;
 
         item = new Clan();
@@ -144,18 +147,18 @@ void MainWindow::on_addClans_clicked()
         //плохой алгортим
         int x = QRandomGenerator::system()->bounded(_widthWorld);
         int y = QRandomGenerator::system()->bounded(_heightWorld);
-        while (_scene->items(QPointF(5*x + 1, 5*y + 1), Qt::IntersectsItemShape, Qt::DescendingOrder).size() > 1)
+        while (_scene->items(QPointF(_squareSide*x + 1, _squareSide*y + 1), Qt::IntersectsItemShape, Qt::DescendingOrder).size() > 1)
         {
             x = QRandomGenerator::system()->bounded(_widthWorld);
             y = QRandomGenerator::system()->bounded(_heightWorld);
         }
-        item->setRect(5*x, 5*y, 5, 5);
+        item->setRect(_squareSide*x, _squareSide*y, _squareSide, _squareSide);
         item->setBrush(brush);
         item->setPen(pen);
         item->setZValue(1); //кланы будут на слой выше чем регионы
 
         _world->addItem(x, y, item);
-        _clans.append(item);
+        ++_clansNumber;
         _scene->addItem(item);
     }
 

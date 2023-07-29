@@ -1,8 +1,8 @@
 #include <QGraphicsScene>
 #include "world.h"
 
-World::World(int w, int h)
-    :_clans(w*h), _w(w), _h(h)
+World::World(int squareSide, int w, int h)
+    :_clans(w*h), _w(w), _h(h), _squareSide(squareSide)
 {
 }
 
@@ -27,24 +27,20 @@ void World::run()
             {
                 ++counter;
                 clan->getGenom(genom);
-                curPoint.setX(x);
-                curPoint.setY(y);
-                for (int i = 0; i < Clan::_size / 2; ++i)
+                curPoint.rx() = x;
+                curPoint.ry() = y;
+                for (int i = 0; i < Clan::_size; ++i)
                 {
                     newPoint = curPoint;
                     newPoint += Clan::_directions[genom[i] % 8];
-                    //newPoint.setX(newPoint.x() % _w);
-                    //if (newPoint.x() < 0)
-                    //    newPoint.setX(newPoint.x() + _w)
 
+                    newPoint.rx() %= _w;
                     if (newPoint.x() < 0)
-                        newPoint.setX(newPoint.x() % _w  + _w);
-                    if (newPoint.x() >= _w)
-                        newPoint.setX(newPoint.x() % _w);
+                        newPoint.rx() += _w;
+                    newPoint.ry() %= _h;
                     if (newPoint.y() < 0)
-                        newPoint.setY(newPoint.y() % _h  + _h);
-                    if (newPoint.y() >= _h)
-                        newPoint.setY(newPoint.y() % _h);
+                        newPoint.ry() += _h;
+
                     if (!newClans[newPoint.x() * _h + newPoint.y()])
                     {
                         newClans[newPoint.x() * _h + newPoint.y()] = clan;
@@ -56,7 +52,7 @@ void World::run()
                         newClans[curPoint.x() * _h + curPoint.y()] = clan;
                     }
                 }
-                clan->setRect(curPoint.x() * 5, curPoint.y() * 5, 5, 5);
+                clan->setRect(curPoint.x() * _squareSide, curPoint.y() * _squareSide, _squareSide, _squareSide);
             }
         }
     }

@@ -35,10 +35,11 @@ private:
     PaintableScene *_scene;
     int _heightWorld, _widthWorld;
     QList<Region*> _regions;
-    QList<Clan*> _clans;
+    int _clansNumber;
     QTimer _timer;
     int _ms;
     World *_world;
+    const int _squareSide = 5;
 
 };
 #endif // MAINWINDOW_H
