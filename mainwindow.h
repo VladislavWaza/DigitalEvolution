@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTimer>
 #include "paintablescene.h"
+#include "world.h"
 #include "region.h"
 #include "clan.h"
 
@@ -36,6 +37,8 @@ private:
     QList<Region*> _regions;
     QList<Clan*> _clans;
     QTimer _timer;
+    int _ms;
+    World *_world;
 
 };
 #endif // MAINWINDOW_H

@@ -14,14 +14,16 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     paintablescene.cpp \
-    region.cpp
+    region.cpp \
+    world.cpp
 
 HEADERS += \
     clan.h \
     graphicsviewzoom.h \
     mainwindow.h \
     paintablescene.h \
-    region.h
+    region.h \
+    world.h
 
 FORMS += \
     mainwindow.ui

@@ -10,6 +10,10 @@
  *ускорить итерации
  *закольцевать мир
  *интерфейс отобржения шагов и блокировка части интерфейса при выполнении
+ *QGraphicsItem::type()
+ *QImage вместо Items bits()
+ *сетка - drawBackground
+ *
  */
 
 
@@ -18,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    _ms = 0;
     //соединяем таймер и выполнение геномов
     connect(&_timer, &QTimer::timeout, this, &MainWindow::run);
 
@@ -26,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
     GraphicsViewZoom* zoom = new GraphicsViewZoom(ui->graphicsView);
     zoom->setModifiers(Qt::NoModifier);
     ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+    //ui->graphicsView->setRenderHint(QPainter::Antialiasing);
+    //ui->graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
+    //ui->graphicsView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 
     //создаем сцену и соединяем со слотом рисовния
     _scene = new PaintableScene(this);
@@ -46,13 +53,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     //число кланов
     ui->numberClans->setMinimum(1);
-    ui->numberClans->setMaximum(2500);
+    ui->numberClans->setMaximum(10000);
+
+    _world = new World();
 }
 
 MainWindow::~MainWindow()
 {
-
     disconnect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
+    delete _world;
     delete ui;
     delete _scene;
 }
@@ -60,6 +69,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_createWorld_clicked()
 {
+    delete _world;
     _regions.clear();
     _clans.clear();
     _scene->clear();
@@ -67,6 +77,7 @@ void MainWindow::on_createWorld_clicked()
     //создаем пустой мир
     _heightWorld = ui->heightWorld->value();
     _widthWorld = ui->widthWorld->value();
+    _world = new World(_widthWorld, _heightWorld);
     _scene->setSceneRect(0, 0, _widthWorld * 5, _heightWorld * 5);
     _scene->setBackgroundBrush(Qt::blue);
     ui->label_5->setNum(0);
@@ -143,6 +154,7 @@ void MainWindow::on_addClans_clicked()
         item->setPen(pen);
         item->setZValue(1); //кланы будут на слой выше чем регионы
 
+        _world->addItem(x, y, item);
         _clans.append(item);
         _scene->addItem(item);
     }
@@ -155,7 +167,7 @@ void MainWindow::on_start_clicked()
     if (ui->start->text() == "Запустить")
     {
         ui->start->setText("Пауза");
-        _timer.start(100);
+        _timer.start(20);
     }
     else
     {
@@ -166,12 +178,11 @@ void MainWindow::on_start_clicked()
 
 void MainWindow::run()
 {
-    int t = QTime::currentTime().msecsSinceStartOfDay();
-    for (int i = 0; i < _clans.size(); ++i)
-    {
-        _clans[i]->run();
-    }
+    if (_ms == 0)
+        _ms = QTime::currentTime().msecsSinceStartOfDay();
+    _world->run();
     ui->label_5->setNum(ui->label_5->text().toInt() + 1);
-    qDebug() << QTime::currentTime().msecsSinceStartOfDay() - t;
+    qDebug() << QTime::currentTime().msecsSinceStartOfDay() - _ms;
+    _ms = QTime::currentTime().msecsSinceStartOfDay();
 }
 

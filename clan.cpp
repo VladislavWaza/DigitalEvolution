@@ -1,6 +1,8 @@
 #include <QRandomGenerator>
-#include <QGraphicsScene>
 #include "clan.h"
+
+QPoint const Clan::_directions[] = {QPoint(-1, 0), QPoint(-1, -1), QPoint(0, -1),
+                                QPoint(1, -1), QPoint(1, 0), QPoint(1, 1), QPoint(0, 1), QPoint(-1, 1)};
 
 Clan::Clan(GenomeInitType genomeInitType, QGraphicsItem *parent)
     :QGraphicsRectItem(parent)
@@ -17,51 +19,8 @@ Clan::~Clan()
 {
 }
 
-void Clan::run()
+Clan::getGenom(uint8_t *ptr) const
 {
     for (int i = 0; i < _size; ++i)
-    {
-        QPointF curPos = rect().topLeft();
-        QPointF target;
-        if (_genom[i] % 9 == 0)
-        {
-           target = curPos + QPointF(-5, 0);
-        }
-        if (_genom[i] % 9 == 1)
-        {
-           target = curPos + QPointF(-5, -5);
-        }
-        if (_genom[i] % 9 == 2)
-        {
-           target = curPos + QPointF(0, -5);
-        }
-        if (_genom[i] % 9 == 3)
-        {
-           target = curPos + QPointF(5, -5);
-        }
-        if (_genom[i] % 9 == 4)
-        {
-           target = curPos + QPointF(5, 0);
-        }
-        if (_genom[i] % 9 == 5)
-        {
-           target = curPos + QPointF(5, 5);
-        }
-        if (_genom[i] % 9 == 6)
-        {
-           target = curPos + QPointF(0, 5);
-        }
-        if (_genom[i] % 9 == 7)
-        {
-           target = curPos + QPointF(-5, 5);
-        }
-        if (_genom[i] % 9 != 8)
-        {
-           int s = scene()->items(target + QPointF(1, 1)).size();
-           if (s == 1)
-           {
-               setRect(target.x(), target.y(), 5, 5);
-           }
-        }
-    }
+        ptr[i] = _genom[i];
 }

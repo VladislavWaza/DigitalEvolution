@@ -80,7 +80,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>Добавить общины</string>
+           <string>Добавить кланы</string>
           </property>
          </widget>
         </item>
