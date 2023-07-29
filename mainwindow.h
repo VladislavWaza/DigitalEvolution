@@ -20,6 +20,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    enum class LayerLevel{Region = 0, Clan = 1, Grid = 2};
 private slots:
     void on_createWorld_clicked();
     void on_addClans_clicked();
@@ -32,9 +33,13 @@ private slots:
 
     QVector<int> sample(QVector<int>& seq, int count);
 private:
+    void addGrid();
+
+
     Ui::MainWindow *ui;
     PaintableScene *_scene;
     QGraphicsPixmapItem *_clansItem, *_regionsItem;
+    QGraphicsPathItem *_grid;
     World *_world;
     int _clansNumber;
     QTimer _timer;

@@ -10,7 +10,6 @@
  *интерфейс отобржения шагов и блокировка части интерфейса при выполнении
  *сетка - drawBackground
  *блокирование операций над миром вне паузы
- *переписать slotPainting
  *
  *
  *Идеи по функционалу клана
@@ -96,6 +95,7 @@ void MainWindow::on_createWorld_clicked()
     _world = new World(ui->widthWorld->value(), ui->heightWorld->value());
     _scene->setSceneRect(0, 0, _world->width(), _world->height());
     _clansNumber = 0;
+    this->addGrid();
 
     //разблокируем часть интерфейса
     ui->label_5->setNum(0);
@@ -121,7 +121,7 @@ void MainWindow::on_createWorld_clicked()
     //помещаем изображения на сцену
     _regionsItem =_scene->addPixmap(QPixmap::fromImage(regionsImage));
     _clansItem =_scene->addPixmap(QPixmap::fromImage(clansImage));
-    _clansItem->setZValue(1); //кланы располагаем на слой выше
+    _clansItem->setZValue(static_cast<int>(LayerLevel::Clan)); //кланы располагаем на слой выше
 }
 
 
@@ -204,7 +204,6 @@ void MainWindow::slotMidButton(QGraphicsSceneMouseEvent *mouseEvent)
     int x = mouseEvent->scenePos().x();
     int y = mouseEvent->scenePos().y();
     qDebug() << x << y;
-
 }
 
 QVector<int> MainWindow::sample(QVector<int> &seq, int count)
@@ -220,4 +219,22 @@ QVector<int> MainWindow::sample(QVector<int> &seq, int count)
         seq.swapItemsAt(randVal, seq.size()-i-1);
     }
     return result;
+}
+
+void MainWindow::addGrid()
+{
+    QPainterPath gridPath;
+    for (int x = 0; x <= _world->width(); ++x)
+    {
+        gridPath.moveTo(x,0);
+        gridPath.lineTo(x,_world->height());
+
+    }
+    for (int y = 0; y <= _world->height(); ++y)
+    {
+        gridPath.moveTo(0,y);
+        gridPath.lineTo(_world->width(),y);
+    }
+    _grid = _scene->addPath(gridPath, QPen(Qt::black, 0.02));
+    _grid->setZValue(static_cast<int>(LayerLevel::Grid));
 }
