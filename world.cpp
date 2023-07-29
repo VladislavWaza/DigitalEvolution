@@ -11,6 +11,16 @@ void World::addItem(int x, int y, Clan* clan)
     _clans[x * _h + y] = clan;
 }
 
+void World::getNumsOfEmptySpaces(QList<int> &list)
+{
+    list.clear();
+    for (int i = 0; i < _w * _h; ++i)
+    {
+        if (!_clans[i])
+            list.append(i);
+    }
+}
+
 void World::run()
 {
     int counter = 0;

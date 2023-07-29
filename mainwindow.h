@@ -30,6 +30,8 @@ private slots:
     void on_start_clicked();
 
     void run();
+
+    QVector<int> sample(QVector<int>& seq, int count);
 private:
     Ui::MainWindow *ui;
     PaintableScene *_scene;

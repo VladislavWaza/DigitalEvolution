@@ -6,11 +6,8 @@
 /*надо сделать
  *выбор кисти биома и сохранение биома в Region
  *передаелть алгортим генерации места клана при добавлении
- *ориетация перемещения на энумах
  *ускорить итерации
- *закольцевать мир
  *интерфейс отобржения шагов и блокировка части интерфейса при выполнении
- *QGraphicsItem::type()
  *QImage вместо Items bits()
  *сетка - drawBackground
  *
@@ -78,14 +75,13 @@ void MainWindow::on_createWorld_clicked()
     //создаем пустой мир
     _heightWorld = ui->heightWorld->value();
     _widthWorld = ui->widthWorld->value();
-    _world = new World(_widthWorld, _heightWorld);
+    _world = new World(_squareSide, _widthWorld, _heightWorld);
     _scene->setSceneRect(0, 0, _widthWorld * _squareSide, _heightWorld * _squareSide);
     _scene->setBackgroundBrush(Qt::blue);
     _clansNumber = 0;
 
-
-    ui->label_5->setNum(0);
     //разблокируем часть интерфейса
+    ui->label_5->setNum(0);
     ui->brushDiameter->setEnabled(true);
     ui->label_3->setEnabled(true);
     ui->brushBiom->setEnabled(true);
@@ -120,10 +116,9 @@ void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
         QList<QGraphicsItem*> items = _scene->items(circle, Qt::IntersectsItemShape, Qt::DescendingOrder);
         for (QGraphicsItem* item : items)
         {
-            if (item->zValue() == 0)
+            if (item->type() == QGraphicsRectItem::Type && item->zValue() == 0)
             {
-                //очень не безопасно, если item не наследник QAbstractGraphicsShapeItem
-                QAbstractGraphicsShapeItem *rect = static_cast<QAbstractGraphicsShapeItem*>(item);
+                QGraphicsRectItem *rect = static_cast<QGraphicsRectItem*>(item);
                 rect->setBrush(Qt::white);
             }
         }
@@ -137,21 +132,19 @@ void MainWindow::on_addClans_clicked()
     QPen pen;
     pen.setWidthF(0.25);
     Clan* item;
+
+    if (_clansNumber + n >= _widthWorld * _heightWorld)
+        n = _widthWorld * _heightWorld - _clansNumber;
+
+    QList<int> emptySpaces;
+    _world->getNumsOfEmptySpaces(emptySpaces);
+    emptySpaces = sample(emptySpaces, n);
+
     for (int i = 0; i < n; ++i)
     {
-        if (_clansNumber == _widthWorld * _heightWorld)
-            break;
-
+        int x = emptySpaces[i] / _heightWorld;
+        int y = emptySpaces[i] % _heightWorld;
         item = new Clan();
-
-        //плохой алгортим
-        int x = QRandomGenerator::system()->bounded(_widthWorld);
-        int y = QRandomGenerator::system()->bounded(_heightWorld);
-        while (_scene->items(QPointF(_squareSide*x + 1, _squareSide*y + 1), Qt::IntersectsItemShape, Qt::DescendingOrder).size() > 1)
-        {
-            x = QRandomGenerator::system()->bounded(_widthWorld);
-            y = QRandomGenerator::system()->bounded(_heightWorld);
-        }
         item->setRect(_squareSide*x, _squareSide*y, _squareSide, _squareSide);
         item->setBrush(brush);
         item->setPen(pen);
@@ -189,3 +182,17 @@ void MainWindow::run()
     _ms = QTime::currentTime().msecsSinceStartOfDay();
 }
 
+QVector<int> MainWindow::sample(QVector<int> &seq, int count)
+{
+    QVector<int> result;
+    if (count < 0)
+        return result;
+    int randVal;
+    for (int i = 0; i < count; ++i)
+    {
+        randVal = QRandomGenerator::system()->bounded(seq.size()-i);
+        result.append(seq[randVal]);
+        seq.swapItemsAt(randVal, seq.size()-i-1);
+    }
+    return result;
+}
