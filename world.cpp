@@ -1,14 +1,21 @@
 #include "world.h"
 
+QPoint const World::ClanUndefined = QPoint(-1,-1);
+
+
 World::World(int w, int h)
-    :_clans(w*h), _w(w), _h(h)
+    :_clans(w*h), _regions(w*h), _w(w), _h(h)
 {
 }
 
 World::~World()
 {
     for (int i = 0; i < _w * _h; ++i)
+    {
         delete _clans[i];
+        delete _regions[i];
+    }
+
 }
 
 int World::width()
@@ -21,6 +28,35 @@ int World::height()
     return _h;
 }
 
+Clan *World::getClan(int x, int y)
+{
+    if (x < 0 || x >= _w || y < 0 || y >= _h)
+        return nullptr;
+    return _clans[x * _h + y];
+}
+
+QPoint World::getClanPos(Clan *clan)
+{
+    if (!clan)
+        return QPoint(-1,-1);
+    for (int x = 0; x < _w; ++x)
+    {
+        for (int y = 0; y < _h; ++y)
+        {
+            if (_clans[x * _h + y] == clan)
+                return QPoint(x,y);
+        }
+    }
+    return QPoint(-1,-1);
+}
+
+Region *World::getRegion(int x, int y)
+{
+    if (x < 0 || x >= _w || y < 0 || y >= _h)
+        return nullptr;
+    return _regions[x * _h + y];
+}
+
 bool World::addClan(int x, int y, Clan* clan)
 {
     if (x < 0 || x >= _w || y < 0 || y >= _h)
@@ -28,6 +64,16 @@ bool World::addClan(int x, int y, Clan* clan)
     if (_clans[x * _h + y])
         return false;
     _clans[x * _h + y] = clan;
+    return true;
+}
+
+bool World::setRegion(int x, int y, Region *region)
+{
+    if (x < 0 || x >= _w || y < 0 || y >= _h)
+        return false;
+    if (_regions[x * _h + y])
+        delete _regions[x * _h + y];
+    _regions[x * _h + y] = region;
     return true;
 }
 

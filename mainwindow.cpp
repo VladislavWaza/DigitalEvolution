@@ -6,9 +6,7 @@
 #include "graphicsviewzoom.h"
 /*надо сделать
  *выбор кисти биома и сохранение биома в Region
- *ускорить итерации
  *интерфейс отобржения шагов и блокировка части интерфейса при выполнении
- *сетка - drawBackground
  *блокирование операций над миром вне паузы
  *
  *
@@ -33,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    _ms = 0;
+
     //соединяем таймер и выполнение геномов
     connect(&_timer, &QTimer::timeout, this, &MainWindow::run);
 
@@ -45,15 +43,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
     ui->graphicsView->setRenderHint(QPainter::SmoothPixmapTransform);
 
-    //создаем сцену и соединяем со слотом рисовния и нажатия средней клавиши
+    //создаем сцену и соединяем со слотом рисовния и нажатия средней клавиши мыши
     _scene = new PaintableScene(this);
     ui->graphicsView->setScene(_scene);
     connect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
     connect(_scene, &PaintableScene::signalMidButton, this, &MainWindow::slotMidButton);
 
     //параметры мира
-    ui->heightWorld->setMaximum(10000);
-    ui->widthWorld->setMaximum(10000);
+    ui->heightWorld->setMaximum(1000);
+    ui->widthWorld->setMaximum(1000);
     ui->heightWorld->setMinimum(50);
     ui->widthWorld->setMinimum(50);
 
@@ -65,11 +63,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     //число кланов
     ui->numberClans->setMinimum(1);
-    ui->numberClans->setMaximum(5000000);
+    ui->numberClans->setMaximum(100000);
 
     _world = new World;
-    _clansItem = new QGraphicsPixmapItem;
-    _regionsItem = new QGraphicsPixmapItem;
+    _ms = 0;
 }
 
 MainWindow::~MainWindow()
@@ -77,8 +74,6 @@ MainWindow::~MainWindow()
     disconnect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
     disconnect(_scene, &PaintableScene::signalMidButton, this, &MainWindow::slotMidButton);
     delete _world;
-    delete _clansItem;
-    delete _regionsItem;
     delete ui;
     delete _scene;
 }
@@ -86,10 +81,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_createWorld_clicked()
 {
-    delete _clansItem;
-    delete _regionsItem;
     delete _world;
     _scene->clear();
+    _selectation.clear();
 
     //создаем пустой мир
     _world = new World(ui->widthWorld->value(), ui->heightWorld->value());
@@ -109,10 +103,13 @@ void MainWindow::on_createWorld_clicked()
     //заполняем мир
     QImage regionsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
     QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    Region* region;
     for (int i = 0; i < _world->width(); ++i)
     {
         for (int j = 0; j < _world->height(); ++j)
         {
+            region = new Region;
+            _world->setRegion(i,j,region);
             regionsImage.setPixelColor(i,j, Qt::gray);
             clansImage.setPixelColor(i,j, QColor(0,0,0,0));
         }
@@ -139,7 +136,6 @@ void MainWindow::on_addClans_clicked()
         emptySpaces = sample(emptySpaces, n); //случайно выбираем n мест
 
     QImage clansImage = _clansItem->pixmap().toImage();
-
     Clan* clan;
     for (int i = 0; i < n; ++i)
     {
@@ -172,9 +168,14 @@ void MainWindow::run()
 {
     if (_ms == 0)
         _ms = QTime::currentTime().msecsSinceStartOfDay();
+
     QImage clansImage = _clansItem->pixmap().toImage();
     _world->run(clansImage);
     _clansItem->setPixmap(QPixmap::fromImage(clansImage));
+
+    _selectation.updateClanPos(_world, _scene);
+    _selectation.displayInfo(ui);
+
     ui->label_5->setNum(ui->label_5->text().toInt() + 1);
     qDebug() << QTime::currentTime().msecsSinceStartOfDay() - _ms;
     _ms = QTime::currentTime().msecsSinceStartOfDay();
@@ -192,7 +193,13 @@ void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
             for (int y = 0; y < image.height(); ++y)
             {
                 if (circle.contains(QPointF(x, y)))
+                {
                     image.setPixelColor(x, y, Qt::white);
+                    Region *region = _world->getRegion(x,y);
+                    //region->setBiom(biom);
+                    if (_selectation.region() == region)
+                        _selectation.displayInfo(ui);
+                }
             }
         }
         _regionsItem->setPixmap(QPixmap::fromImage(image));
@@ -203,7 +210,9 @@ void MainWindow::slotMidButton(QGraphicsSceneMouseEvent *mouseEvent)
 {
     int x = mouseEvent->scenePos().x();
     int y = mouseEvent->scenePos().y();
-    qDebug() << x << y;
+    _selectation.select(x,y,_world);
+    _selectation.displaySelection(x,y,_scene);
+    _selectation.displayInfo(ui);
 }
 
 QVector<int> MainWindow::sample(QVector<int> &seq, int count)
