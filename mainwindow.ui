@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>822</width>
     <height>600</height>
    </rect>
   </property>
@@ -15,7 +15,10 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="6">
+    <item row="0" column="0">
+     <widget class="QGraphicsView" name="graphicsView"/>
+    </item>
+    <item row="0" column="5" colspan="2">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -95,7 +98,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QSpinBox" name="numberClans">
+         <widget class="QSpinBox" name="clansNumberToAdd">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -105,17 +108,24 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="1" column="1">
-         <widget class="QLabel" name="clansCounter">
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Кланов в мире</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="stepNumber">
           <property name="text">
            <string>0</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_5">
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Кланов в мире</string>
+           <string>Номер шага</string>
           </property>
          </widget>
         </item>
@@ -129,15 +139,22 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_7">
+        <item row="1" column="1">
+         <widget class="QLabel" name="clansNumber">
           <property name="text">
-           <string>Номер шага</string>
+           <string>0</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="stepNumber">
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>мс между шагами</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLabel" name="time">
           <property name="text">
            <string>0</string>
           </property>
@@ -157,12 +174,16 @@
           </property>
          </widget>
         </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="food">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
-    </item>
-    <item row="0" column="0">
-     <widget class="QGraphicsView" name="graphicsView"/>
     </item>
    </layout>
   </widget>
@@ -171,7 +192,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>822</width>
      <height>29</height>
     </rect>
    </property>

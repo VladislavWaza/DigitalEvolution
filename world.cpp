@@ -28,6 +28,42 @@ int World::height()
     return _h;
 }
 
+void World::getClansImage(QImage &img)
+{
+    img = img.scaled(_w, _h);
+    img = img.convertedTo(QImage::Format_ARGB32);
+    Clan *clan;
+    for (int x = 0; x < _w; ++x)
+    {
+        for (int y = 0; y < _h; ++y)
+        {
+            clan = _clans[x * _h + y];
+            if (clan)
+                img.setPixelColor(x,y,clan->getColor());
+            else
+                img.setPixelColor(x,y,QColor(0,0,0,0));
+        }
+    }
+}
+
+void World::getRegionsImage(QImage &img)
+{
+    img = img.scaled(_w, _h);
+    img = img.convertedTo(QImage::Format_ARGB32);
+    Region *region;
+    for (int x = 0; x < _w; ++x)
+    {
+        for (int y = 0; y < _h; ++y)
+        {
+            region = _regions[x * _h + y];
+            if (region)
+                img.setPixelColor(x,y,region->getColor());
+            else
+                img.setPixelColor(x,y,QColor(0,0,0,0));
+        }
+    }
+}
+
 Clan *World::getClan(int x, int y)
 {
     if (x < 0 || x >= _w || y < 0 || y >= _h)
@@ -98,11 +134,9 @@ int World::clansNumber()
     return n;
 }
 
-bool World::run(QImage &img)
+void World::run()
 {
-    if (img.height() != _h || img.width() != _w)
-        return false;
-    QList<Clan*> newClans(_clans);
+    QList<Clan*> oldClans(_clans);
     Clan *clan;
     uint8_t genom[Clan::_size];
     QPoint pos;
@@ -111,61 +145,64 @@ bool World::run(QImage &img)
     {
         for (int y = 0; y < _h; ++y)
         {
-            clan = _clans[x * _h + y];
+            clan = oldClans[x * _h + y];
             if (clan && clan->isAlive())
             {
                 pos.rx() = x;
                 pos.ry() = y;
                 clan->getGenom(genom);
+
+                //выполняем команды
                 for (int i = 0; i < Clan::_size; ++i)
                 {
                     if (genom[i] >= 0 && genom[i] <= 7)
                         clan->setDirection(Clan::_directions[genom[i]]);
-                    if (genom[i] == 8)
+                    if (genom[i] == 8 || genom[i] == 9)
                     {
-                        if (move(&pos, clan, img, newClans))
+                        if (move(&pos, clan))
                             break;
                     }
-                    if (genom[i] == 9)
+                    if (genom[i] == 10 || genom[i] == 11)
                     {
                         collectFood(pos, clan);
                         break;
                     }
-                    if (genom[i] == 10)
+                    if (genom[i] == 12 || genom[i] == 13)
                     {
-                        if (attack(&pos, clan, img, newClans))
+                        if (attack(&pos, clan))
                             break;
                     }
                 }
+
+                //приверяем выживает ли клан, если нет убираем его
                 clan->survive();
                 if (!clan->isAlive())
                 {
-                    img.setPixelColor(pos.x(),pos.y(),QColor(0,0,0,0));
-                    newClans[pos.x() * _h + pos.y()] = nullptr;
+                    _clans[pos.x() * _h + pos.y()] = nullptr;
                 }
             }
         }
     }
+
+    //удаляем мертвые кланы
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
-            clan = _clans[x * _h + y];
+            clan = oldClans[x * _h + y];
             if (clan && !clan->isAlive())
             {
                 delete clan;
             }
         }
     }
-    _clans = newClans;
-    return true;
 }
 
-bool World::move(QPoint *pos, Clan *clan, QImage &img, QList<Clan *> &newClans)
+bool World::move(QPoint *pos, Clan *clan)
 {
+    //вычисляем место перемещения
     QPoint newPoint(*pos);
     newPoint += clan->getDirection();
-
     newPoint.rx() %= _w;
     if (newPoint.x() < 0)
         newPoint.rx() += _w;
@@ -173,12 +210,10 @@ bool World::move(QPoint *pos, Clan *clan, QImage &img, QList<Clan *> &newClans)
     if (newPoint.y() < 0)
         newPoint.ry() += _h;
 
-    if (!newClans[newPoint.x() * _h + newPoint.y()])
+    if (!_clans[newPoint.x() * _h + newPoint.y()]) //если не занято
     {
-        newClans[newPoint.x() * _h + newPoint.y()] = clan;
-        newClans[pos->x() * _h + pos->y()] = nullptr;
-        img.setPixelColor(newPoint.x(),newPoint.y(),img.pixelColor(pos->x(),pos->y()));
-        img.setPixelColor(pos->x(),pos->y(),QColor(0,0,0,0));
+        _clans[newPoint.x() * _h + newPoint.y()] = clan; //перемещаемся
+        _clans[pos->x() * _h + pos->y()] = nullptr; //прошлое место опустошаем
         *pos = newPoint;
         return true;
     }
@@ -187,11 +222,12 @@ bool World::move(QPoint *pos, Clan *clan, QImage &img, QList<Clan *> &newClans)
 
 void World::collectFood(QPoint pos, Clan *clan)
 {
-    clan->increaseFood(200);
+    clan->increaseFood(100);
 }
 
-bool World::attack(QPoint *pos, Clan *clan, QImage &img, QList<Clan*> &newClans)
+bool World::attack(QPoint *pos, Clan *clan)
 {
+    //вычисляем место атаки
     QPoint target(*pos);
     target += clan->getDirection();
     target.rx() %= _w;
@@ -201,17 +237,12 @@ bool World::attack(QPoint *pos, Clan *clan, QImage &img, QList<Clan*> &newClans)
     if (target.y() < 0)
         target.ry() += _h;
 
-    Clan *enemy = newClans[target.x() * _h + target.y()];
-
+    Clan *enemy = _clans[target.x() * _h + target.y()];
     if (enemy)
     {
-        if (clan->getPopulation() >= enemy->getPopulation())
-        {
-            newClans[target.x() * _h + target.y()] = nullptr;
-            img.setPixelColor(target.x(),target.y(),QColor(0,0,0,0));
-            clan->increaseFood(enemy->getFood());
-            enemy->kill();
-        }
+        _clans[target.x() * _h + target.y()] = nullptr;
+        clan->increaseFood(enemy->getFood());
+        enemy->kill();
         return true;
     }
     return false;

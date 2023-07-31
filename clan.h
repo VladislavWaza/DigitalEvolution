@@ -2,6 +2,7 @@
 #define CLAN_H
 #include <QPoint>
 #include <QObject>
+#include <QColor>
 class Clan : public QObject
 {
     Q_OBJECT
@@ -10,12 +11,12 @@ public:
     Clan(GenomeInitType genomeInitType = GenomeInitType::Random);
     ~Clan();
 
+    QColor getColor();
+
     void getGenom(uint8_t *ptr) const;
 
     void setDirection(QPoint direction);
     QPoint getDirection();
-
-    int getPopulation();
 
     int getFood();
     void increaseFood(int food);
@@ -31,9 +32,10 @@ signals:
     void signalKilled();
 private:
     uint8_t* _genom;
-    int _food, _population;
+    int _food;
     QPoint _direction;
     bool _isAlive;
+    QColor _color;
 };
 
 #endif // CLAN_H

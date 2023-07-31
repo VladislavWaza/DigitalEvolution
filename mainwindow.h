@@ -23,18 +23,33 @@ public:
 
     enum class LayerLevel{Region = 0, Clan = 1, Grid = 2, HighlightSelection = 3};
 private slots:
+    //слот нажатия на кнопку создания мира
     void on_createWorld_clicked();
+
+    //слот нажатия на кнопку добавления кланов
     void on_addClans_clicked();
+
+    //слот нажатия на кнопку старт/пауза
     void on_start_clicked();
 
+    //слот запуска геномов, срабатывает по таймеру
     void run();
 
+    /*Если клан был убит, то он будет динамически удален
+     *и чтобы _selectedClan не указывал на удаленный участок памяти вызывается этот слот,
+     *где _selectedClan станет равным nullptr*/
     void slotSelectedClanKilled();
+
+    //слот изменения биомов
     void slotPainting(QGraphicsSceneMouseEvent *mouseEvent);
+
+    //слот выбора клана и/или региона
     void slotMidButton(QGraphicsSceneMouseEvent *mouseEvent);
 
+    //случайная подпоследовательность длинной count, без повторений
     QVector<int> sample(QVector<int>& seq, int count);
 private:
+    //добавляет сетку на сцену
     void addGrid();
 
     // отображает информацию о выбранных территории и клане
@@ -42,6 +57,14 @@ private:
 
     // отображает рамку по указанным координтам
     void displaySelection(int x, int y);
+
+    // очищает информацию о выбранных территории и клане
+    void clearInfo();
+
+    //заполняет мир регионами
+    void fillWorldWithRegions();
+
+    void setEnabledWorldChangeInterface(bool x);
     Ui::MainWindow *ui;
     PaintableScene *_scene;
     World *_world;
