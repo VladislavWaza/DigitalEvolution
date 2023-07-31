@@ -87,55 +87,132 @@ void World::getNumsOfEmptySpaces(QList<int> &list)
     }
 }
 
+int World::clansNumber()
+{
+    int n = 0;
+    for (int i = 0; i < _w * _h; ++i)
+    {
+        if (_clans[i])
+            ++n;
+    }
+    return n;
+}
+
 bool World::run(QImage &img)
 {
     if (img.height() != _h || img.width() != _w)
         return false;
     QList<Clan*> newClans(_clans);
-    QPoint curPoint, newPoint;
     Clan *clan;
     uint8_t genom[Clan::_size];
+    QPoint pos;
+
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
             clan = _clans[x * _h + y];
-            if (clan)
+            if (clan && clan->isAlive())
             {
+                pos.rx() = x;
+                pos.ry() = y;
                 clan->getGenom(genom);
-                curPoint.rx() = x;
-                curPoint.ry() = y;
                 for (int i = 0; i < Clan::_size; ++i)
                 {
-                    newPoint = curPoint;
-                    newPoint += Clan::_directions[genom[i] % 8];
-
-                    newPoint.rx() %= _w;
-                    if (newPoint.x() < 0)
-                        newPoint.rx() += _w;
-                    newPoint.ry() %= _h;
-                    if (newPoint.y() < 0)
-                        newPoint.ry() += _h;
-
-                    if (!newClans[newPoint.x() * _h + newPoint.y()])
+                    if (genom[i] >= 0 && genom[i] <= 7)
+                        clan->setDirection(Clan::_directions[genom[i]]);
+                    if (genom[i] == 8)
                     {
-                        newClans[newPoint.x() * _h + newPoint.y()] = clan;
-                        newClans[curPoint.x() * _h + curPoint.y()] = nullptr;
-                        curPoint = newPoint;
+                        if (move(&pos, clan, img, newClans))
+                            break;
                     }
-                    else
+                    if (genom[i] == 9)
                     {
-                        newClans[curPoint.x() * _h + curPoint.y()] = clan;
+                        collectFood(pos, clan);
+                        break;
+                    }
+                    if (genom[i] == 10)
+                    {
+                        if (attack(&pos, clan, img, newClans))
+                            break;
                     }
                 }
-                if (curPoint.x() != x || curPoint.y() != y)
+                clan->survive();
+                if (!clan->isAlive())
                 {
-                    img.setPixelColor(curPoint.x(),curPoint.y(),img.pixelColor(x,y));
-                    img.setPixelColor(x,y,QColor(0,0,0,0));
+                    img.setPixelColor(pos.x(),pos.y(),QColor(0,0,0,0));
+                    newClans[pos.x() * _h + pos.y()] = nullptr;
                 }
+            }
+        }
+    }
+    for (int x = 0; x < _w; ++x)
+    {
+        for (int y = 0; y < _h; ++y)
+        {
+            clan = _clans[x * _h + y];
+            if (clan && !clan->isAlive())
+            {
+                delete clan;
             }
         }
     }
     _clans = newClans;
     return true;
+}
+
+bool World::move(QPoint *pos, Clan *clan, QImage &img, QList<Clan *> &newClans)
+{
+    QPoint newPoint(*pos);
+    newPoint += clan->getDirection();
+
+    newPoint.rx() %= _w;
+    if (newPoint.x() < 0)
+        newPoint.rx() += _w;
+    newPoint.ry() %= _h;
+    if (newPoint.y() < 0)
+        newPoint.ry() += _h;
+
+    if (!newClans[newPoint.x() * _h + newPoint.y()])
+    {
+        newClans[newPoint.x() * _h + newPoint.y()] = clan;
+        newClans[pos->x() * _h + pos->y()] = nullptr;
+        img.setPixelColor(newPoint.x(),newPoint.y(),img.pixelColor(pos->x(),pos->y()));
+        img.setPixelColor(pos->x(),pos->y(),QColor(0,0,0,0));
+        *pos = newPoint;
+        return true;
+    }
+    return false;
+}
+
+void World::collectFood(QPoint pos, Clan *clan)
+{
+    clan->increaseFood(200);
+}
+
+bool World::attack(QPoint *pos, Clan *clan, QImage &img, QList<Clan*> &newClans)
+{
+    QPoint target(*pos);
+    target += clan->getDirection();
+    target.rx() %= _w;
+    if (target.x() < 0)
+        target.rx() += _w;
+    target.ry() %= _h;
+    if (target.y() < 0)
+        target.ry() += _h;
+
+    Clan *enemy = newClans[target.x() * _h + target.y()];
+
+    if (enemy)
+    {
+        if (clan->getPopulation() >= enemy->getPopulation())
+        {
+            newClans[target.x() * _h + target.y()] = nullptr;
+            img.setPixelColor(target.x(),target.y(),QColor(0,0,0,0));
+            clan->increaseFood(enemy->getFood());
+            enemy->kill();
+        }
+        return true;
+    }
+    return false;
 }

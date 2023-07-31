@@ -15,7 +15,6 @@ SOURCES += \
     mainwindow.cpp \
     paintablescene.cpp \
     region.cpp \
-    selectionui.cpp \
     world.cpp
 
 HEADERS += \

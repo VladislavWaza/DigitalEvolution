@@ -7,7 +7,7 @@
 /*надо сделать
  *выбор кисти биома и сохранение биома в Region
  *интерфейс отобржения шагов и блокировка части интерфейса при выполнении
- *блокирование операций над миром вне паузы
+ *убрать Image из World
  *
  *
  *Идеи по функционалу клана
@@ -66,6 +66,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->numberClans->setMaximum(100000);
 
     _world = new World;
+    _selectedClan = nullptr;
+    _selectedRegion = nullptr;
+    _selectionItem = nullptr;
     _ms = 0;
 }
 
@@ -83,16 +86,21 @@ void MainWindow::on_createWorld_clicked()
 {
     delete _world;
     _scene->clear();
-    _selectation.clear();
+
+
+    _selectedClan = nullptr;
+    _selectedRegion = nullptr;
+    _selectionItem = nullptr;
+    ui->label->clear();
 
     //создаем пустой мир
     _world = new World(ui->widthWorld->value(), ui->heightWorld->value());
     _scene->setSceneRect(0, 0, _world->width(), _world->height());
-    _clansNumber = 0;
+    ui->clansCounter->setNum(0);
     this->addGrid();
 
     //разблокируем часть интерфейса
-    ui->label_5->setNum(0);
+    ui->stepNumber->setNum(0);
     ui->brushDiameter->setEnabled(true);
     ui->label_3->setEnabled(true);
     ui->brushBiom->setEnabled(true);
@@ -144,7 +152,7 @@ void MainWindow::on_addClans_clicked()
         clansImage.setPixelColor(x,y,Qt::darkCyan);
         clan = new Clan;
         _world->addClan(x, y, clan);
-        ++_clansNumber;
+        ui->clansCounter->setNum(ui->clansCounter->text().toInt() + 1);
     }
     _clansItem->setPixmap(QPixmap::fromImage(clansImage));
     ui->start->setEnabled(true);
@@ -155,10 +163,32 @@ void MainWindow::on_start_clicked()
     if (ui->start->text() == "Запустить")
     {
         ui->start->setText("Пауза");
+        ui->createWorld->setEnabled(false);
+        ui->heightWorld->setEnabled(false);
+        ui->widthWorld->setEnabled(false);
+        ui->label->setEnabled(false);
+        ui->label_2->setEnabled(false);
+        ui->brushDiameter->setEnabled(false);
+        ui->label_3->setEnabled(false);
+        ui->brushBiom->setEnabled(false);
+        ui->label_4->setEnabled(false);
+        ui->addClans->setEnabled(false);
+        ui->numberClans->setEnabled(false);
         _timer.start(20);
     }
     else
     {
+        ui->createWorld->setEnabled(true);
+        ui->heightWorld->setEnabled(true);
+        ui->widthWorld->setEnabled(true);
+        ui->label->setEnabled(true);
+        ui->label_2->setEnabled(true);
+        ui->brushDiameter->setEnabled(true);
+        ui->label_3->setEnabled(true);
+        ui->brushBiom->setEnabled(true);
+        ui->label_4->setEnabled(true);
+        ui->addClans->setEnabled(true);
+        ui->numberClans->setEnabled(true);
         _timer.stop();
         ui->start->setText("Запустить");
     }
@@ -170,15 +200,27 @@ void MainWindow::run()
         _ms = QTime::currentTime().msecsSinceStartOfDay();
 
     QImage clansImage = _clansItem->pixmap().toImage();
+    clansImage.convertTo(QImage::Format_ARGB32);
     _world->run(clansImage);
     _clansItem->setPixmap(QPixmap::fromImage(clansImage));
 
-    _selectation.updateClanPos(_world, _scene);
-    _selectation.displayInfo(ui);
+    QPoint pos = _world->getClanPos(_selectedClan);
+    if (pos != World::ClanUndefined) //Если _clan еще существует
+        displaySelection(pos.x(),pos.y());
+    else //Если клан был удален или _clan == nullptr
+        _selectedClan = nullptr;
 
-    ui->label_5->setNum(ui->label_5->text().toInt() + 1);
-    qDebug() << QTime::currentTime().msecsSinceStartOfDay() - _ms;
-    _ms = QTime::currentTime().msecsSinceStartOfDay();
+    displayInfo();
+    ui->clansCounter->setNum(_world->clansNumber());
+    ui->stepNumber->setNum(ui->stepNumber->text().toInt() + 1);
+    //qDebug() << QTime::currentTime().msecsSinceStartOfDay() - _ms;
+    //_ms = QTime::currentTime().msecsSinceStartOfDay();
+}
+
+void MainWindow::slotSelectedClanKilled()
+{
+    disconnect(_selectedClan, &Clan::signalKilled, this, &MainWindow::slotSelectedClanKilled);
+    _selectedClan = nullptr;
 }
 
 void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
@@ -197,8 +239,8 @@ void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
                     image.setPixelColor(x, y, Qt::white);
                     Region *region = _world->getRegion(x,y);
                     //region->setBiom(biom);
-                    if (_selectation.region() == region)
-                        _selectation.displayInfo(ui);
+                    if (_selectedRegion == region)
+                        displayInfo();
                 }
             }
         }
@@ -210,9 +252,14 @@ void MainWindow::slotMidButton(QGraphicsSceneMouseEvent *mouseEvent)
 {
     int x = mouseEvent->scenePos().x();
     int y = mouseEvent->scenePos().y();
-    _selectation.select(x,y,_world);
-    _selectation.displaySelection(x,y,_scene);
-    _selectation.displayInfo(ui);
+    if (_selectedClan)
+        disconnect(_selectedClan, &Clan::signalKilled, this, &MainWindow::slotSelectedClanKilled);
+    _selectedClan = _world->getClan(x,y);
+    _selectedRegion = _world->getRegion(x,y);
+    if (_selectedClan)
+        connect(_selectedClan, &Clan::signalKilled, this, &MainWindow::slotSelectedClanKilled);
+    displaySelection(x,y);
+    displayInfo();
 }
 
 QVector<int> MainWindow::sample(QVector<int> &seq, int count)
@@ -246,4 +293,35 @@ void MainWindow::addGrid()
     }
     _grid = _scene->addPath(gridPath, QPen(Qt::black, 0.02));
     _grid->setZValue(static_cast<int>(LayerLevel::Grid));
+}
+
+void MainWindow::displayInfo()
+{
+    if (_selectedClan)
+    {
+        uint8_t genom[Clan::_size];
+        _selectedClan->getGenom(genom);
+        QString str;
+        for (int i = 0; i < Clan::_size; ++i)
+            str += QString::number(static_cast<int>(genom[i])) + ' ';
+        ui->genom->setText(str);
+    }
+    else
+        ui->genom->clear();
+}
+
+void MainWindow::displaySelection(int x, int y)
+{
+    if (_selectionItem)
+    {
+        _scene->removeItem(_selectionItem);
+        _selectionItem = nullptr;
+    }
+    if (_selectedClan || _selectedRegion)
+    {
+        QPainterPath path;
+        path.addRect(x,y,1,1);
+        _selectionItem = _scene->addPath(path, QPen(Qt::white, 0.1));
+        _selectionItem->setZValue(static_cast<int>(MainWindow::LayerLevel::HighlightSelection));
+    }
 }

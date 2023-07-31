@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QLabel>
 #include "paintablescene.h"
 #include "world.h"
 #include "region.h"
@@ -15,38 +16,6 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-private:
-
-    /*Класс нужен затем чтобы делегировать на него полномочия по
-     * отображению рамки выделения и информации о выбранных объектах*/
-    class SelectionUI
-    {
-    public:
-        SelectionUI();
-
-        // стирает информацию о выделении, обнуляет поля
-        void clear();
-
-        // возвращет указатель на выбранный регион
-        Region *region();
-
-        // запоминает объекты по указанным координтам в указанном мире
-        void select(int x, int y, World *world);
-
-        // отображает рамку по указанным координтам
-        void displaySelection(int x, int y, PaintableScene *scene);
-
-        // отображает информацию о территории и клане на ui
-        void displayInfo(Ui::MainWindow *ui);
-
-        //обновляет положение клана и оборжаает рамку выделения
-        void updateClanPos(World *world, PaintableScene *scene);
-    private:
-        Clan* _clan;
-        Region* _region;
-        QGraphicsPathItem *_selectionItem;
-    };
-
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -60,21 +29,30 @@ private slots:
 
     void run();
 
+    void slotSelectedClanKilled();
     void slotPainting(QGraphicsSceneMouseEvent *mouseEvent);
     void slotMidButton(QGraphicsSceneMouseEvent *mouseEvent);
 
     QVector<int> sample(QVector<int>& seq, int count);
 private:
     void addGrid();
+
+    // отображает информацию о выбранных территории и клане
+    void displayInfo();
+
+    // отображает рамку по указанным координтам
+    void displaySelection(int x, int y);
     Ui::MainWindow *ui;
     PaintableScene *_scene;
     World *_world;
 
     QGraphicsPixmapItem *_clansItem, *_regionsItem;
     QGraphicsPathItem *_grid;
-    SelectionUI _selectation;
 
-    int _clansNumber;
+    Clan* _selectedClan;
+    Region* _selectedRegion;
+    QGraphicsPathItem *_selectionItem;
+
     QTimer _timer;
     int _ms;
 };
