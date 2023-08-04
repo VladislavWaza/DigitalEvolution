@@ -46,9 +46,12 @@ private slots:
     //слот выбора клана и/или региона
     void slotMidButton(QGraphicsSceneMouseEvent *mouseEvent);
 
+    void slotRadioButtons();
+
+private:
     //случайная подпоследовательность длинной count, без повторений
     QVector<int> sample(QVector<int>& seq, int count);
-private:
+
     //добавляет сетку на сцену
     void addGrid();
 
@@ -65,9 +68,14 @@ private:
     void fillWorldWithRegions();
 
     void setEnabledWorldChangeInterface(bool x);
+
+    void setOrderLayers();
+
+
     Ui::MainWindow *ui;
     PaintableScene *_scene;
     World *_world;
+    World::DisplayMode _displayMode;
 
     QGraphicsPixmapItem *_clansItem, *_regionsItem;
     QGraphicsPathItem *_grid;

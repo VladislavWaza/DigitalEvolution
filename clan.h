@@ -9,6 +9,7 @@ class Clan : public QObject
 public:
     enum class GenomeInitType{Random};
     Clan(GenomeInitType genomeInitType = GenomeInitType::Random);
+    Clan(const Clan& parent);
     ~Clan();
 
     QColor getColor();
@@ -26,6 +27,8 @@ public:
 
     void survive();
 
+    static const int _maxFood = 1000;
+    static const int _percentMutation = 25;
     static const int _size = 8; //должно делиться на 4
     static const QPoint _directions[];
 signals:

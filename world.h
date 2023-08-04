@@ -16,14 +16,17 @@
 class World
 {
 public:
+    static const QPoint ClanUndefined;
+    enum class DisplayMode{Сommon, Food, Population};
+
     World(int w = 0, int h = 0);
     ~World();
 
     int width();
     int height();
 
-    void getClansImage(QImage &img);
-    void getRegionsImage(QImage &img);
+    void getClansImage(QImage &img, DisplayMode mode);
+    void getRegionsImage(QImage &img, DisplayMode mode);
 
     /*Возвращает указатель на клан по указанным координатам
     * при координатах выходящих за границы мира или при отсутсвии клана возвращает nullptr
@@ -58,6 +61,8 @@ public:
      */
     void getNumsOfEmptySpaces(QList<int> &list);
 
+    QPoint randomEmptySpaceNearby(QPoint pos);
+
     /* возвращает число живых кланов*/
     int clansNumber();
 
@@ -83,7 +88,9 @@ public:
     //если это возможно, то убить клан по направлению поворота и забрать его еду, иначе false
     bool attack(QPoint *pos, Clan *clan);
 
-    static const QPoint ClanUndefined;
+    bool born(QPoint pos, Clan *clan);
+
+    void returnPosToWorld(QPoint *pos);
 private:
     QList<Clan*> _clans;
     QList<Region*> _regions;

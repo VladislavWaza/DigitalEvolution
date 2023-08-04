@@ -14,7 +14,20 @@ Clan::Clan(GenomeInitType genomeInitType)
     }
     for (int i = 0; i < _size; ++i)
         _genom[i] %= 14;
-    _food = 0;
+    _food = 1;
+    _direction = Clan::_directions[0];
+    _isAlive = true;
+    _color = Qt::darkCyan;
+}
+
+Clan::Clan(const Clan &parent)
+{
+    _genom = new uint8_t[_size];
+    for (int i = 0; i < _size; ++i)
+        _genom[i] = parent._genom[i];
+    if (QRandomGenerator::system()->bounded(100) < Clan::_percentMutation)
+       _genom[QRandomGenerator::system()->bounded(_size)] = QRandomGenerator::system()->bounded(14);
+    _food = 1;
     _direction = Clan::_directions[0];
     _isAlive = true;
     _color = Qt::darkCyan;
@@ -53,6 +66,8 @@ int Clan::getFood()
 void Clan::increaseFood(int food)
 {
     _food += food;
+    if (_food > _maxFood)
+        _food = _maxFood;
 }
 
 bool Clan::isAlive()
@@ -68,7 +83,7 @@ void Clan::kill()
 
 void Clan::survive()
 {
-    _food -= 30;
+    _food -= 1;
     if (_food <= 0)
         kill();
 }

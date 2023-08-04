@@ -1,3 +1,4 @@
+#include <QRandomGenerator>
 #include "world.h"
 
 QPoint const World::ClanUndefined = QPoint(-1,-1);
@@ -28,7 +29,7 @@ int World::height()
     return _h;
 }
 
-void World::getClansImage(QImage &img)
+void World::getClansImage(QImage &img, DisplayMode mode)
 {
     img = img.scaled(_w, _h);
     img = img.convertedTo(QImage::Format_ARGB32);
@@ -39,14 +40,26 @@ void World::getClansImage(QImage &img)
         {
             clan = _clans[x * _h + y];
             if (clan)
-                img.setPixelColor(x,y,clan->getColor());
+            {
+                if (mode == DisplayMode::Сommon)
+                    img.setPixelColor(x,y,clan->getColor());
+                else if (mode == DisplayMode::Food)
+                {
+                    float green = clan->getFood();
+                    if (green < 0)
+                        green = 0;
+                    green /= Clan::_maxFood;
+                    img.setPixelColor(x,y,QColor::fromRgbF(1 - green, green, 0, 1));
+                }
+
+            }
             else
                 img.setPixelColor(x,y,QColor(0,0,0,0));
         }
     }
 }
 
-void World::getRegionsImage(QImage &img)
+void World::getRegionsImage(QImage &img, DisplayMode mode)
 {
     img = img.scaled(_w, _h);
     img = img.convertedTo(QImage::Format_ARGB32);
@@ -123,6 +136,22 @@ void World::getNumsOfEmptySpaces(QList<int> &list)
     }
 }
 
+QPoint World::randomEmptySpaceNearby(QPoint pos)
+{
+    QVector<QPoint> seq;
+    QPoint newPos;
+    for (int i = 0; i < 8; ++i)
+    {
+        newPos = pos + Clan::_directions[i];
+        returnPosToWorld(&newPos);
+        if (!_clans[newPos.x() * _h + newPos.y()])
+            seq.append(newPos);
+    }
+    if (seq.isEmpty())
+        return World::ClanUndefined;
+    return seq[QRandomGenerator::system()->bounded(seq.size())];
+}
+
 int World::clansNumber()
 {
     int n = 0;
@@ -176,6 +205,8 @@ void World::run()
 
                 //приверяем выживает ли клан, если нет убираем его
                 clan->survive();
+                if (clan->getFood() >= 310)
+                    born(pos, clan);
                 if (!clan->isAlive())
                 {
                     _clans[pos.x() * _h + pos.y()] = nullptr;
@@ -203,12 +234,7 @@ bool World::move(QPoint *pos, Clan *clan)
     //вычисляем место перемещения
     QPoint newPoint(*pos);
     newPoint += clan->getDirection();
-    newPoint.rx() %= _w;
-    if (newPoint.x() < 0)
-        newPoint.rx() += _w;
-    newPoint.ry() %= _h;
-    if (newPoint.y() < 0)
-        newPoint.ry() += _h;
+    returnPosToWorld(&newPoint);
 
     if (!_clans[newPoint.x() * _h + newPoint.y()]) //если не занято
     {
@@ -222,7 +248,7 @@ bool World::move(QPoint *pos, Clan *clan)
 
 void World::collectFood(QPoint pos, Clan *clan)
 {
-    clan->increaseFood(100);
+        clan->increaseFood(3);
 }
 
 bool World::attack(QPoint *pos, Clan *clan)
@@ -230,12 +256,7 @@ bool World::attack(QPoint *pos, Clan *clan)
     //вычисляем место атаки
     QPoint target(*pos);
     target += clan->getDirection();
-    target.rx() %= _w;
-    if (target.x() < 0)
-        target.rx() += _w;
-    target.ry() %= _h;
-    if (target.y() < 0)
-        target.ry() += _h;
+    returnPosToWorld(&target);
 
     Clan *enemy = _clans[target.x() * _h + target.y()];
     if (enemy)
@@ -246,4 +267,26 @@ bool World::attack(QPoint *pos, Clan *clan)
         return true;
     }
     return false;
+}
+
+bool World::born(QPoint pos, Clan *clan)
+{
+    QPoint newPos = randomEmptySpaceNearby(pos);
+    if (newPos == World::ClanUndefined)
+        return false;
+    Clan* son = new Clan(*clan);
+    _clans[newPos.x() * _h + newPos.y()] = son;
+    son->increaseFood(10);
+    clan->increaseFood(-10);
+    return true;
+}
+
+void World::returnPosToWorld(QPoint *pos)
+{
+    pos->rx() %= _w;
+    if (pos->x() < 0)
+        pos->rx() += _w;
+    pos->ry() %= _h;
+    if (pos->y() < 0)
+        pos->ry() += _h;
 }

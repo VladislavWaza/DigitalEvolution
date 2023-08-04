@@ -9,6 +9,7 @@
  *тепловые карты
  *от чего зависит еда на территории
  *цвета кланов
+ *2 завершающих действия до заверщения кода
  *
  *Идеи по функционалу клана
  *модификаторы на атаку/защиту/добычу/перемещение, в виде множителя, но если лучше одно то чуже другое
@@ -65,7 +66,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->clansNumberToAdd->setMinimum(1);
     ui->clansNumberToAdd->setMaximum(100000);
 
-    _world = new World;
+    //соединяем слот выбора режима отображения с радио-кнопками
+    _displayMode = World::DisplayMode::Сommon;
+    connect(ui->commonMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    connect(ui->popMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    connect(ui->foodMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+
+    _world = new World;    
     _selectedClan = nullptr;
     _selectedRegion = nullptr;
     _selectionItem = nullptr;
@@ -74,6 +81,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    disconnect(ui->commonMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    disconnect(ui->popMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    disconnect(ui->foodMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     disconnect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
     disconnect(_scene, &PaintableScene::signalMidButton, this, &MainWindow::slotMidButton);
     delete _world;
@@ -99,27 +109,21 @@ void MainWindow::on_createWorld_clicked()
     _scene->setSceneRect(0, 0, _world->width(), _world->height());
     this->addGrid();
 
-    //разблокируем интерфейс связанный с изменением биомов и добавлением кланов
-    ui->brushDiameter->setEnabled(true);
-    ui->label_3->setEnabled(true);
-    ui->brushBiom->setEnabled(true);
-    ui->label_4->setEnabled(true);
-    ui->addClans->setEnabled(true);
-    ui->clansNumberToAdd->setEnabled(true);
-
     //заполняем мир и загружаем изображения на сцену
     fillWorldWithRegions();
     QImage regionsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getRegionsImage(regionsImage);
+    _world->getRegionsImage(regionsImage, _displayMode);
     _regionsItem =_scene->addPixmap(QPixmap::fromImage(regionsImage));
-    _regionsItem->setZValue(static_cast<int>(LayerLevel::Region));
 
     QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getClansImage(clansImage);
+    _world->getClansImage(clansImage, _displayMode);
     _clansItem =_scene->addPixmap(QPixmap::fromImage(clansImage));
-    _clansItem->setZValue(static_cast<int>(LayerLevel::Clan));
 
-
+    setOrderLayers();
+    setEnabledWorldChangeInterface(true);
+    ui->commonMode->setEnabled(true);
+    ui->foodMode->setEnabled(true);
+    ui->popMode->setEnabled(true);
 }
 
 
@@ -149,7 +153,7 @@ void MainWindow::on_addClans_clicked()
 
     //загружаем изменения на сцену
     QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getClansImage(clansImage);
+    _world->getClansImage(clansImage, _displayMode);
     _clansItem->setPixmap(QPixmap::fromImage(clansImage));
 
     //разблокируем старт
@@ -178,8 +182,9 @@ void MainWindow::run()
     //запускаем геномы, принимаем изменения в изображении
     _world->run();
     QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getClansImage(clansImage);
+    _world->getClansImage(clansImage, _displayMode);
     _clansItem->setPixmap(QPixmap::fromImage(clansImage));
+
 
     //отслеживаем перемещение выбранного клана
     //если клан был удален, то slotSelectedClanKilled установил _selectedClan = nullptr
@@ -224,7 +229,7 @@ void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
             }
         }
         QImage image(_world->width(), _world->height(), QImage::Format_ARGB32);
-        _world->getRegionsImage(image);
+        _world->getRegionsImage(image, _displayMode);
         _regionsItem->setPixmap(QPixmap::fromImage(image));
     }
 }
@@ -345,4 +350,37 @@ void MainWindow::setEnabledWorldChangeInterface(bool x)
     ui->label_4->setEnabled(x);
     ui->addClans->setEnabled(x);
     ui->clansNumberToAdd->setEnabled(x);
+}
+
+void MainWindow::setOrderLayers()
+{
+    if (_displayMode == World::DisplayMode::Сommon ||
+        _displayMode == World::DisplayMode::Population ||
+        _displayMode == World::DisplayMode::Food)
+    {
+        _regionsItem->setZValue(static_cast<int>(LayerLevel::Region));
+        _clansItem->setZValue(static_cast<int>(LayerLevel::Clan));
+    }
+
+}
+
+void MainWindow::slotRadioButtons()
+{
+    if (ui->commonMode->isChecked())
+        _displayMode = World::DisplayMode::Сommon;
+    if (ui->popMode->isChecked())
+        _displayMode = World::DisplayMode::Population;
+    if (ui->foodMode->isChecked())
+        _displayMode = World::DisplayMode::Food;
+
+
+    QImage regionsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    _world->getRegionsImage(regionsImage, _displayMode);
+    _regionsItem->setPixmap(QPixmap::fromImage(regionsImage));
+
+    QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    _world->getClansImage(clansImage, _displayMode);
+    _clansItem->setPixmap(QPixmap::fromImage(clansImage));
+
+    setOrderLayers();
 }
