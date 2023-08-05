@@ -1,10 +1,11 @@
 #include <QRandomGenerator>
-#include "clan.h"
+#include "cell.h"
 
-QPoint const Clan::_directions[] = {QPoint(-1, 0), QPoint(-1, -1), QPoint(0, -1),
+QPoint const Cell::_directions[] = {QPoint(-1, 0), QPoint(-1, -1), QPoint(0, -1),
                                 QPoint(1, -1), QPoint(1, 0), QPoint(1, 1), QPoint(0, 1), QPoint(-1, 1)};
 
-Clan::Clan(GenomeInitType genomeInitType)
+Cell::Cell(GenomeInitType genomeInitType)
+    :QObject()
 {
     _genom = new uint8_t[_size];
     if (genomeInitType == GenomeInitType::Random)
@@ -16,85 +17,86 @@ Clan::Clan(GenomeInitType genomeInitType)
         _genom[i] %= (_maxGene + 1);
     _food = 1;
     _strength = 1;
-    _direction = Clan::_directions[0];
+    _direction = Cell::_directions[0];
     _isAlive = true;
     _color = Qt::darkCyan;
 }
 
-Clan::Clan(const Clan &parent)
+Cell::Cell(const Cell &parent)
+    :QObject()
 {
     _genom = new uint8_t[_size];
     for (int i = 0; i < _size; ++i)
         _genom[i] = parent._genom[i];
-    if (QRandomGenerator::system()->bounded(100) < Clan::_percentMutation)
+    if (QRandomGenerator::system()->bounded(100) < Cell::_percentMutation)
        _genom[QRandomGenerator::system()->bounded(_size)] = QRandomGenerator::system()->bounded(_maxGene + 1);
     _food = 1;
     _strength = 1;
-    _direction = Clan::_directions[0];
+    _direction = Cell::_directions[0];
     _isAlive = true;
     _color = Qt::darkCyan;
 }
 
-Clan::~Clan()
+Cell::~Cell()
 {
 }
 
-QColor Clan::getColor()
+QColor Cell::getColor()
 {
     return _color;
 }
 
-void Clan::getGenom(uint8_t *ptr) const
+void Cell::getGenom(uint8_t *ptr) const
 {
     for (int i = 0; i < _size; ++i)
         ptr[i] = _genom[i];
 }
 
-void Clan::setDirection(QPoint direction)
+void Cell::setDirection(QPoint direction)
 {
     _direction = direction;
 }
 
-QPoint Clan::getDirection()
+QPoint Cell::getDirection()
 {
     return _direction;
 }
 
-int Clan::getStrength()
+int Cell::getStrength()
 {
     return _strength;
 }
 
-void Clan::setStrength(int strength)
+void Cell::setStrength(int strength)
 {
     if (strength >= 1 && strength <= _maxStrength)
         _strength = strength;
 }
 
-int Clan::getFood()
+int Cell::getFood()
 {
     return _food;
 }
 
-void Clan::increaseFood(int food)
+void Cell::increaseFood(int food)
 {
     _food += food;
     if (_food > _maxFood)
         _food = _maxFood;
 }
 
-bool Clan::isAlive()
+bool Cell::isAlive()
 {
     return _isAlive;
 }
 
-void Clan::kill()
+void Cell::kill()
 {
     _isAlive = false;
     emit signalKilled();
 }
 
-void Clan::survive()
+void Cell::survive()
 {
     _food -= _strength;
     if (_food < 0)

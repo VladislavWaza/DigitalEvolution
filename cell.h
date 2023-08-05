@@ -1,16 +1,16 @@
-#ifndef CLAN_H
-#define CLAN_H
+#ifndef CELL_H
+#define CELL_H
 #include <QPoint>
 #include <QObject>
 #include <QColor>
-class Clan : public QObject
+class Cell : public QObject
 {
     Q_OBJECT
 public:
     enum class GenomeInitType{Random};
-    Clan(GenomeInitType genomeInitType = GenomeInitType::Random);
-    Clan(const Clan& parent);
-    ~Clan();
+    Cell(GenomeInitType genomeInitType = GenomeInitType::Random);
+    Cell(const Cell& parent);
+    ~Cell();
 
     QColor getColor();
 
@@ -47,4 +47,4 @@ private:
     QColor _color;
 };
 
-#endif // CLAN_H
+#endif // CELL_H

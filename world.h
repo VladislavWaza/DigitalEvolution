@@ -2,21 +2,21 @@
 #define WORLD_H
 
 #include <QImage>
-#include "clan.h"
+#include "cell.h"
 #include "region.h"
 
-/* Нужен чтобы забрать задачу работы с миром у MainWinwow
+/* Нужен чтобы забрать задачу работы с миром у MainWindow
  *
- * Отслеживает положения кланов(class Clan) в мире, храня указатели на кланы
+ * Отслеживает положения клеток(class Cell) в мире, храня указатели на клетки
  * Выполняет их геномы
- * Автоматически удаляет кланы и регионы при удалении мира
+ * Автоматически удаляет клетки и регионы при удалении мира
  */
 
 
 class World
 {
 public:
-    static const QPoint ClanUndefined;
+    static const QPoint CellUndefined;
     enum class DisplayMode{Сommon, Food, Strength};
 
     World(int w = 0, int h = 0);
@@ -25,16 +25,16 @@ public:
     int width();
     int height();
 
-    void getClansImage(QImage &img, DisplayMode mode);
+    void getCellsImage(QImage &img, DisplayMode mode);
     void getRegionsImage(QImage &img, DisplayMode mode);
 
-    /*Возвращает указатель на клан по указанным координатам
-    * при координатах выходящих за границы мира или при отсутсвии клана возвращает nullptr
+    /*Возвращает указатель на клетку по указанным координатам
+    * при координатах выходящих за границы мира или при отсутсвии клетки возвращает nullptr
     */
-    Clan *getClan(int x, int y);
+    Cell *getCell(int x, int y);
 
-    /*Возвращает координаты клана в мире, при отсутвии клана возвращает World::ClanUndefined = QPoint(-1,-1)*/
-    QPoint getClanPos(Clan *clan);
+    /*Возвращает координаты клетки в мире, при отсутвии клетки возвращает World::CellUndefined = QPoint(-1,-1)*/
+    QPoint getCellPos(Cell *cell);
 
     /*Возвращает указатель на регион по указанным координатам
     * при координатах выходящих за границы мира возвращает nullptr
@@ -42,11 +42,11 @@ public:
     Region *getRegion(int x, int y);
 
 
-    /* Добавляет клан в мир и возвращает true
+    /* Добавляет клетку в мир и возвращает true
      * при попытке добавления за пределы мира возращает false
      * при попытке добавления в уже занятый регион возвращает false
      */
-    bool addClan(int x, int y, Clan *clan);
+    bool addCell(int x, int y, Cell *cell);
 
     /* Добавляет регион в мир и возвращает true
      * при попытке добавления в уже занятый регион заменяет, а старый удаляет
@@ -54,7 +54,7 @@ public:
      */
     bool setRegion(int x, int y, Region *region);
 
-    /* возвращает номера ячеек где еще нет клана
+    /* возвращает номера ячеек где еще нет клетки
      * из этого номера можно вычислить положение ячейки
      * x = number / height
      * y = number % height
@@ -62,45 +62,45 @@ public:
     void getNumsOfEmptySpaces(QList<int> &list);
 
     /* возвращает случайное свободное место рядом с pos,
-     * если таковых нет, то возвращает World::ClanUndefined = QPoint(-1,-1)
+     * если таковых нет, то возвращает World::CellUndefined = QPoint(-1,-1)
      */
     QPoint randomEmptySpaceNearby(QPoint pos);
 
-    /* возвращает число живых кланов*/
-    int clansNumber();
+    /* возвращает число живых клеток*/
+    int cellsNumber();
 
-    /* последовательно выполняет геномы всех кланов, добавленных в мир
+    /* последовательно выполняет геномы всех клеток, добавленных в мир
      * при несоответсвии размеров img и размеров мира возвращает false
-     * требуется img такого формата, где клану соответсвут один пиксель
+     * требуется img такого формата, где клетке соответсвут один пиксель
      *
      * Алгоритм работы мира:
-     * Для каждого клана по очереди
+     * Для каждой клетки по очереди
      * 1.Проиходим по геному и выполняем команды
      * 2.Есть команды повернуть, атаковать, собрать еду, перейти
      * 3.Команды собрать еду, атаковать и перейти - завершающие
      * 4.Но если не было кого атаковать или некуда перейти, то не завершающие
-     * 5.Проверка выживает ли клан
+     * 5.Проверка выживает ли клетка
      */
     void run();
 
-    //если это возможно, то передвинуть клан вперед согласно его направлению, иначе false
-    bool move(QPoint *pos, Clan *clan);
+    //если это возможно, то передвинуть клетку вперед согласно её направлению, иначе false
+    bool move(QPoint *pos, Cell *cell);
 
-    void collectFood(QPoint pos, Clan *clan);
+    void collectFood(QPoint pos, Cell *cell);
 
-    //если это возможно, то убить клан по направлению поворота и забрать его еду, иначе false
-    bool attack(QPoint *pos, Clan *clan);
+    //если это возможно, то убить клетку по направлению поворота и забрать её еду, иначе false
+    bool attack(QPoint *pos, Cell *cell);
 
-    //создать дочерний клан если это возможно, pos - позиция родителя
-    bool born(QPoint pos, Clan *clan);
+    //создать дочернюю клетку если это возможно, pos - позиция родителя
+    bool born(QPoint pos, Cell *cell);
 
     //повышает или понижает силу на 1 по направлению к цели, снимает за это 50 еды
-    void aimStrength(int target, Clan *clan);
+    void aimStrength(int target, Cell *cell);
 
     //при выходе pos за границы мира, возвращает на место так будто мир закольцован
     void returnPosToWorld(QPoint *pos);
 private:
-    QList<Clan*> _clans;
+    QList<Cell*> _cells;
     QList<Region*> _regions;
     int _w, _h;
 };

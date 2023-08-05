@@ -7,7 +7,7 @@
 #include "paintablescene.h"
 #include "world.h"
 #include "region.h"
-#include "clan.h"
+#include "cell.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,13 +21,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    enum class LayerLevel{Region = 0, Clan = 1, Grid = 2, HighlightSelection = 3};
+    enum class LayerLevel{Region = 0, Cell = 1, Grid = 2, HighlightSelection = 3};
 private slots:
     //слот нажатия на кнопку создания мира
     void on_createWorld_clicked();
 
-    //слот нажатия на кнопку добавления кланов
-    void on_addClans_clicked();
+    //слот нажатия на кнопку добавления клеток
+    void on_addCells_clicked();
 
     //слот нажатия на кнопку старт/пауза
     void on_start_clicked();
@@ -35,10 +35,10 @@ private slots:
     //слот запуска геномов, срабатывает по таймеру
     void run();
 
-    /*Если клан был убит, то он будет динамически удален
-     *и чтобы _selectedClan не указывал на удаленный участок памяти вызывается этот слот,
-     *где _selectedClan станет равным nullptr*/
-    void slotSelectedClanKilled();
+    /*Если клетка была убита, то она будет динамически удалена
+     *и чтобы _selectedCell не указывал на удаленный участок памяти вызывается этот слот,
+     *где _selectedCell станет равным nullptr*/
+    void slotSelectedCellKilled();
 
     //слот изменения биомов
     void slotPainting(QGraphicsSceneMouseEvent *mouseEvent);
@@ -55,13 +55,13 @@ private:
     //добавляет сетку на сцену
     void addGrid();
 
-    // отображает информацию о выбранных территории и клане
+    // отображает информацию о выбранном регионе и клетке
     void displayInfo();
 
     // отображает рамку по указанным координтам
     void displaySelection(int x, int y);
 
-    // очищает информацию о выбранных территории и клане
+    // очищает информацию о выбранном регионе и клетке
     void clearInfo();
 
     //заполняет мир регионами
@@ -77,10 +77,10 @@ private:
     World *_world;
     World::DisplayMode _displayMode;
 
-    QGraphicsPixmapItem *_clansItem, *_regionsItem;
+    QGraphicsPixmapItem *_cellsItem, *_regionsItem;
     QGraphicsPathItem *_grid;
 
-    Clan* _selectedClan;
+    Cell* _selectedCell;
     Region* _selectedRegion;
     QGraphicsPathItem *_selectionItem;
 

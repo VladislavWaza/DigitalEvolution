@@ -78,12 +78,12 @@
       <item>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="1" column="0" colspan="2">
-         <widget class="QPushButton" name="addClans">
+         <widget class="QPushButton" name="addCells">
           <property name="enabled">
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>Добавить кланы</string>
+           <string>Добавить клетки</string>
           </property>
          </widget>
         </item>
@@ -98,7 +98,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QSpinBox" name="clansNumberToAdd">
+         <widget class="QSpinBox" name="cellsNumberToAdd">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -118,7 +118,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>Кланов в мире</string>
+           <string>Клеток в мире</string>
           </property>
          </widget>
         </item>
@@ -146,7 +146,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QLabel" name="clansNumber">
+         <widget class="QLabel" name="cellsNumber">
           <property name="text">
            <string>0</string>
           </property>

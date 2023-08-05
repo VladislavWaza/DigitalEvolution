@@ -1,11 +1,11 @@
 #include <QRandomGenerator>
 #include "world.h"
 
-QPoint const World::ClanUndefined = QPoint(-1,-1);
+QPoint const World::CellUndefined = QPoint(-1,-1);
 
 
 World::World(int w, int h)
-    :_clans(w*h), _regions(w*h), _w(w), _h(h)
+    :_cells(w*h), _regions(w*h), _w(w), _h(h)
 {
 }
 
@@ -13,7 +13,7 @@ World::~World()
 {
     for (int i = 0; i < _w * _h; ++i)
     {
-        delete _clans[i];
+        delete _cells[i];
         delete _regions[i];
     }
 
@@ -29,32 +29,32 @@ int World::height()
     return _h;
 }
 
-void World::getClansImage(QImage &img, DisplayMode mode)
+void World::getCellsImage(QImage &img, DisplayMode mode)
 {
     img = img.scaled(_w, _h);
     img = img.convertedTo(QImage::Format_ARGB32);
-    Clan *clan;
+    Cell *cell;
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
-            clan = _clans[x * _h + y];
-            if (clan)
+            cell = _cells[x * _h + y];
+            if (cell)
             {
                 if (mode == DisplayMode::Сommon)
-                    img.setPixelColor(x,y,clan->getColor());
+                    img.setPixelColor(x,y,cell->getColor());
                 else if (mode == DisplayMode::Food)
                 {
-                    float green = clan->getFood();
+                    float green = cell->getFood();
                     if (green < 0)
                         green = 0;
-                    green /= Clan::_maxFood;
+                    green /= Cell::_maxFood;
                     img.setPixelColor(x,y,QColor::fromRgbF(1 - green, green, 0, 1));
                 }
                 else if (mode == DisplayMode::Strength)
                 {
 
-                    img.setPixelColor(x,y,QColor(255 / static_cast<float>(Clan::_maxStrength) * clan->getStrength(),0,0,255));
+                    img.setPixelColor(x,y,QColor(255 / static_cast<float>(Cell::_maxStrength) * cell->getStrength(),0,0,255));
                 }
 
             }
@@ -82,22 +82,22 @@ void World::getRegionsImage(QImage &img, DisplayMode mode)
     }
 }
 
-Clan *World::getClan(int x, int y)
+Cell *World::getCell(int x, int y)
 {
     if (x < 0 || x >= _w || y < 0 || y >= _h)
         return nullptr;
-    return _clans[x * _h + y];
+    return _cells[x * _h + y];
 }
 
-QPoint World::getClanPos(Clan *clan)
+QPoint World::getCellPos(Cell *cell)
 {
-    if (!clan)
+    if (!cell)
         return QPoint(-1,-1);
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
-            if (_clans[x * _h + y] == clan)
+            if (_cells[x * _h + y] == cell)
                 return QPoint(x,y);
         }
     }
@@ -111,13 +111,13 @@ Region *World::getRegion(int x, int y)
     return _regions[x * _h + y];
 }
 
-bool World::addClan(int x, int y, Clan* clan)
+bool World::addCell(int x, int y, Cell *cell)
 {
     if (x < 0 || x >= _w || y < 0 || y >= _h)
         return false;
-    if (_clans[x * _h + y])
+    if (_cells[x * _h + y])
         return false;
-    _clans[x * _h + y] = clan;
+    _cells[x * _h + y] = cell;
     return true;
 }
 
@@ -136,7 +136,7 @@ void World::getNumsOfEmptySpaces(QList<int> &list)
     list.clear();
     for (int i = 0; i < _w * _h; ++i)
     {
-        if (!_clans[i])
+        if (!_cells[i])
             list.append(i);
     }
 }
@@ -147,22 +147,22 @@ QPoint World::randomEmptySpaceNearby(QPoint pos)
     QPoint newPos;
     for (int i = 0; i < 8; ++i)
     {
-        newPos = pos + Clan::_directions[i];
+        newPos = pos + Cell::_directions[i];
         returnPosToWorld(&newPos);
-        if (!_clans[newPos.x() * _h + newPos.y()])
+        if (!_cells[newPos.x() * _h + newPos.y()])
             seq.append(newPos);
     }
     if (seq.isEmpty())
-        return World::ClanUndefined;
+        return World::CellUndefined;
     return seq[QRandomGenerator::system()->bounded(seq.size())];
 }
 
-int World::clansNumber()
+int World::cellsNumber()
 {
     int n = 0;
     for (int i = 0; i < _w * _h; ++i)
     {
-        if (_clans[i])
+        if (_cells[i])
             ++n;
     }
     return n;
@@ -170,146 +170,146 @@ int World::clansNumber()
 
 void World::run()
 {
-    QList<Clan*> oldClans(_clans);
-    Clan *clan;
-    uint8_t genom[Clan::_size];
+    QList<Cell*> oldCells(_cells);
+    Cell *cell;
+    uint8_t genom[Cell::_size];
     QPoint pos;
 
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
-            clan = oldClans[x * _h + y];
-            if (clan && clan->isAlive())
+            cell = oldCells[x * _h + y];
+            if (cell && cell->isAlive())
             {
                 pos.rx() = x;
                 pos.ry() = y;
-                clan->getGenom(genom);
+                cell->getGenom(genom);
 
                 //выполняем команды
-                for (int i = 0; i < Clan::_size; ++i)
+                for (int i = 0; i < Cell::_size; ++i)
                 {
                     if (genom[i] >= 0 && genom[i] <= 7)
-                        clan->setDirection(Clan::_directions[genom[i]]);
+                        cell->setDirection(Cell::_directions[genom[i]]);
                     if (genom[i] == 8 || genom[i] == 9)
                     {
-                        if (move(&pos, clan))
+                        if (move(&pos, cell))
                             break;
                     }
                     if (genom[i] == 10 || genom[i] == 11)
                     {
-                        collectFood(pos, clan);
+                        collectFood(pos, cell);
                         break;
                     }
                     if (genom[i] == 12 || genom[i] == 13)
                     {
-                        if (attack(&pos, clan))
+                        if (attack(&pos, cell))
                             break;
                     }
                     if (genom[i] == 14)
                     {
-                        aimStrength(1, clan);
+                        aimStrength(1, cell);
                     }
                     if (genom[i] == 15)
                     {
-                        aimStrength(2, clan);
+                        aimStrength(2, cell);
                     }
                     if (genom[i] == 16)
                     {
-                        aimStrength(3, clan);
+                        aimStrength(3, cell);
                     }
                     if (genom[i] == 17)
                     {
-                        aimStrength(4, clan);
+                        aimStrength(4, cell);
                     }
                 }
-                //приверяем выживает ли клан, если нет убираем его
-                clan->survive();
-                if (clan->getFood() >= 300)
-                    born(pos, clan);
-                if (!clan->isAlive())
+                //приверяем выживает ли клетка, если нет убираем её
+                cell->survive();
+                if (cell->getFood() >= 300)
+                    born(pos, cell);
+                if (!cell->isAlive())
                 {
-                    _clans[pos.x() * _h + pos.y()] = nullptr;
+                    _cells[pos.x() * _h + pos.y()] = nullptr;
                 }
             }
         }
     }
 
-    //удаляем мертвые кланы
+    //удаляем мертвые клетки
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
-            clan = oldClans[x * _h + y];
-            if (clan && !clan->isAlive())
+            cell = oldCells[x * _h + y];
+            if (cell && !cell->isAlive())
             {
-                delete clan;
+                delete cell;
             }
         }
     }
 }
 
-bool World::move(QPoint *pos, Clan *clan)
+bool World::move(QPoint *pos, Cell *cell)
 {
     //вычисляем место перемещения
     QPoint newPoint(*pos);
-    newPoint += clan->getDirection();
+    newPoint += cell->getDirection();
     returnPosToWorld(&newPoint);
 
-    if (!_clans[newPoint.x() * _h + newPoint.y()]) //если не занято
+    if (!_cells[newPoint.x() * _h + newPoint.y()]) //если не занято
     {
-        _clans[newPoint.x() * _h + newPoint.y()] = clan; //перемещаемся
-        _clans[pos->x() * _h + pos->y()] = nullptr; //прошлое место опустошаем
+        _cells[newPoint.x() * _h + newPoint.y()] = cell; //перемещаемся
+        _cells[pos->x() * _h + pos->y()] = nullptr; //прошлое место опустошаем
         *pos = newPoint;
         return true;
     }
     return false;
 }
 
-void World::collectFood(QPoint pos, Clan *clan)
+void World::collectFood(QPoint pos, Cell *cell)
 {
-        clan->increaseFood(3);
+        cell->increaseFood(3);
 }
 
-bool World::attack(QPoint *pos, Clan *clan)
+bool World::attack(QPoint *pos, Cell *cell)
 {
     //вычисляем место атаки
     QPoint target(*pos);
-    target += clan->getDirection();
+    target += cell->getDirection();
     returnPosToWorld(&target);
 
-    Clan *enemy = _clans[target.x() * _h + target.y()];
-    if (enemy && enemy->getStrength() <= clan->getStrength())
+    Cell *enemy = _cells[target.x() * _h + target.y()];
+    if (enemy && enemy->getStrength() <= cell->getStrength())
     {
-        _clans[target.x() * _h + target.y()] = nullptr;
-        clan->increaseFood(enemy->getFood() * 2 / 3);
+        _cells[target.x() * _h + target.y()] = nullptr;
+        cell->increaseFood(enemy->getFood() * 2 / 3);
         enemy->kill();
         return true;
     }
     return false;
 }
 
-bool World::born(QPoint pos, Clan *clan)
+bool World::born(QPoint pos, Cell *cell)
 {
     QPoint newPos = randomEmptySpaceNearby(pos);
-    if (newPos == World::ClanUndefined)
+    if (newPos == World::CellUndefined)
         return false;
-    Clan* son = new Clan(*clan);
-    _clans[newPos.x() * _h + newPos.y()] = son;
+    Cell* son = new Cell(*cell);
+    _cells[newPos.x() * _h + newPos.y()] = son;
     son->increaseFood(10);
-    clan->increaseFood(-10);
+    cell->increaseFood(-10);
     return true;
 }
 
-void World::aimStrength(int target, Clan *clan)
+void World::aimStrength(int target, Cell *cell)
 {
-    if (clan->getStrength() != target && clan->getFood() >= 50)
+    if (cell->getStrength() != target && cell->getFood() >= 50)
     {
-        if (clan->getStrength() - target > 0)
-            clan->setStrength(clan->getStrength() - 1);
+        if (cell->getStrength() - target > 0)
+            cell->setStrength(cell->getStrength() - 1);
         else
-            clan->setStrength(clan->getStrength() + 1);
-        clan->increaseFood(-50);
+            cell->setStrength(cell->getStrength() + 1);
+        cell->increaseFood(-50);
     }
 }
 

@@ -8,10 +8,10 @@
  *выбор кисти биома и сохранение биома в Region
  *тепловые карты
  *от чего зависит еда на территории
- *цвета кланов
+ *цвета клеток
  *2 завершающих действия до заверщения кода
  *
- *Идеи по функционалу клана
+ *Идеи по функционалу клеток
  *отрстреливание ребенка
  *модификаторы на атаку/защиту/добычу/перемещение, в виде множителя, но если лучше одно то чуже другое
  *свой/чужой?
@@ -60,12 +60,10 @@ MainWindow::MainWindow(QWidget *parent)
     //параметры кисти
     ui->brushDiameter->setMinimum(1);
     ui->brushDiameter->setMaximum(500);
-    ui->brushBiom->addItem("Степь");
-    ui->brushBiom->addItem("Лес");
 
-    //число кланов
-    ui->clansNumberToAdd->setMinimum(1);
-    ui->clansNumberToAdd->setMaximum(100000);
+    //число клеток
+    ui->cellsNumberToAdd->setMinimum(1);
+    ui->cellsNumberToAdd->setMaximum(100000);
 
     //соединяем слот выбора режима отображения с радио-кнопками
     _displayMode = World::DisplayMode::Сommon;
@@ -74,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->foodMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
 
     _world = new World;    
-    _selectedClan = nullptr;
+    _selectedCell = nullptr;
     _selectedRegion = nullptr;
     _selectionItem = nullptr;
     _ms = 0;
@@ -98,11 +96,11 @@ void MainWindow::on_createWorld_clicked()
     //очищаем мир, сцену и интерфейс
     delete _world;
     _scene->clear();
-    _selectedClan = nullptr;
+    _selectedCell = nullptr;
     _selectedRegion = nullptr;
     _selectionItem = nullptr;
     clearInfo();
-    ui->clansNumber->setNum(0);
+    ui->cellsNumber->setNum(0);
     ui->stepNumber->setNum(0);
 
     //создаем пустой мир
@@ -116,9 +114,9 @@ void MainWindow::on_createWorld_clicked()
     _world->getRegionsImage(regionsImage, _displayMode);
     _regionsItem =_scene->addPixmap(QPixmap::fromImage(regionsImage));
 
-    QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getClansImage(clansImage, _displayMode);
-    _clansItem =_scene->addPixmap(QPixmap::fromImage(clansImage));
+    QImage cellsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    _world->getCellsImage(cellsImage, _displayMode);
+    _cellsItem =_scene->addPixmap(QPixmap::fromImage(cellsImage));
 
     setOrderLayers();
     setEnabledWorldChangeInterface(true);
@@ -128,9 +126,9 @@ void MainWindow::on_createWorld_clicked()
 }
 
 
-void MainWindow::on_addClans_clicked()
+void MainWindow::on_addCells_clicked()
 {
-    int n = ui->clansNumberToAdd->value();
+    int n = ui->cellsNumberToAdd->value();
 
     //запрашиваем совобдные места
     QList<int> emptySpaces;
@@ -142,23 +140,23 @@ void MainWindow::on_addClans_clicked()
     else
         emptySpaces = sample(emptySpaces, n);
 
-    //ставим новые кланы на места
-    Clan* clan;
+    //ставим новые клетки на места
+    Cell* cell;
     for (int i = 0; i < n; ++i)
     {
         int x = emptySpaces[i] / _world->height();
         int y = emptySpaces[i] % _world->height();
-        clan = new Clan;
-        _world->addClan(x, y, clan);
+        cell = new Cell;
+        _world->addCell(x, y, cell);
     }
 
     //загружаем изменения на сцену
-    QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getClansImage(clansImage, _displayMode);
-    _clansItem->setPixmap(QPixmap::fromImage(clansImage));
+    QImage cellsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    _world->getCellsImage(cellsImage, _displayMode);
+    _cellsItem->setPixmap(QPixmap::fromImage(cellsImage));
 
     //разблокируем старт
-    ui->clansNumber->setNum(ui->clansNumber->text().toInt() + n);
+    ui->cellsNumber->setNum(ui->cellsNumber->text().toInt() + n);
     ui->start->setEnabled(true);
 }
 
@@ -182,35 +180,35 @@ void MainWindow::run()
 {
     //запускаем геномы, принимаем изменения в изображении
     _world->run();
-    QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getClansImage(clansImage, _displayMode);
-    _clansItem->setPixmap(QPixmap::fromImage(clansImage));
+    QImage cellsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    _world->getCellsImage(cellsImage, _displayMode);
+    _cellsItem->setPixmap(QPixmap::fromImage(cellsImage));
 
     QImage regionsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
     _world->getRegionsImage(regionsImage, _displayMode);
     _regionsItem->setPixmap(QPixmap::fromImage(regionsImage));
 
-    //отслеживаем перемещение выбранного клана
-    //если клан был удален, то slotSelectedClanKilled установил _selectedClan = nullptr
-    //если _selectedClan == nullptr, то pos == World::ClanUndefined
-    QPoint pos = _world->getClanPos(_selectedClan);
-    if (pos != World::ClanUndefined) //Если _clan еще существует
+    //отслеживаем перемещение выбранной клетки
+    //если клетка была удалена, то slotSelectedCellKilled установил _selectedCell = nullptr
+    //если _selectedCell == nullptr, то pos == World::CellUndefined
+    QPoint pos = _world->getCellPos(_selectedCell);
+    if (pos != World::CellUndefined) //Если клетка еще существует
         displaySelection(pos.x(),pos.y());
     else
-        _selectedClan = nullptr;
+        _selectedCell = nullptr;
 
-    //выводим информацию о выбранных объектах, числе кланов, номере шага, время итерации
+    //выводим информацию о выбранных объектах, числе клеток, номере шага, время итерации
     displayInfo();
-    ui->clansNumber->setNum(_world->clansNumber());
+    ui->cellsNumber->setNum(_world->cellsNumber());
     ui->stepNumber->setNum(ui->stepNumber->text().toInt() + 1);
     ui->time->setNum(QTime::currentTime().msecsSinceStartOfDay() - _ms);
     _ms = QTime::currentTime().msecsSinceStartOfDay();
 }
 
-void MainWindow::slotSelectedClanKilled()
+void MainWindow::slotSelectedCellKilled()
 {
-    disconnect(_selectedClan, &Clan::signalKilled, this, &MainWindow::slotSelectedClanKilled);
-    _selectedClan = nullptr;
+    disconnect(_selectedCell, &Cell::signalKilled, this, &MainWindow::slotSelectedCellKilled);
+    _selectedCell = nullptr;
 }
 
 void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
@@ -243,14 +241,14 @@ void MainWindow::slotMidButton(QGraphicsSceneMouseEvent *mouseEvent)
     int x = mouseEvent->scenePos().x();
     int y = mouseEvent->scenePos().y();
 
-    if (_selectedClan)
-        disconnect(_selectedClan, &Clan::signalKilled, this, &MainWindow::slotSelectedClanKilled);
+    if (_selectedCell)
+        disconnect(_selectedCell, &Cell::signalKilled, this, &MainWindow::slotSelectedCellKilled);
 
-    _selectedClan = _world->getClan(x,y);
+    _selectedCell = _world->getCell(x,y);
     _selectedRegion = _world->getRegion(x,y);
 
-    if (_selectedClan)
-        connect(_selectedClan, &Clan::signalKilled, this, &MainWindow::slotSelectedClanKilled);
+    if (_selectedCell)
+        connect(_selectedCell, &Cell::signalKilled, this, &MainWindow::slotSelectedCellKilled);
 
     displaySelection(x,y);
     displayInfo();
@@ -291,16 +289,16 @@ void MainWindow::addGrid()
 
 void MainWindow::displayInfo()
 {
-    if (_selectedClan)
+    if (_selectedCell)
     {
-        uint8_t genom[Clan::_size];
-        _selectedClan->getGenom(genom);
+        uint8_t genom[Cell::_size];
+        _selectedCell->getGenom(genom);
         QString str;
-        for (int i = 0; i < Clan::_size; ++i)
+        for (int i = 0; i < Cell::_size; ++i)
             str += QString::number(static_cast<int>(genom[i])) + ' ';
         ui->genom->setText(str);
-        ui->food->setNum(_selectedClan->getFood());
-        ui->strength->setNum(_selectedClan->getStrength());
+        ui->food->setNum(_selectedCell->getFood());
+        ui->strength->setNum(_selectedCell->getStrength());
     }
     else
         clearInfo();
@@ -313,7 +311,7 @@ void MainWindow::displaySelection(int x, int y)
         _scene->removeItem(_selectionItem);
         _selectionItem = nullptr;
     }
-    if (_selectedClan || _selectedRegion)
+    if (_selectedCell || _selectedRegion)
     {
         QPainterPath path;
         path.addRect(x,y,1,1);
@@ -354,8 +352,8 @@ void MainWindow::setEnabledWorldChangeInterface(bool x)
     ui->label_3->setEnabled(x);
     ui->brushBiom->setEnabled(x);
     ui->label_4->setEnabled(x);
-    ui->addClans->setEnabled(x);
-    ui->clansNumberToAdd->setEnabled(x);
+    ui->addCells->setEnabled(x);
+    ui->cellsNumberToAdd->setEnabled(x);
 }
 
 void MainWindow::setOrderLayers()
@@ -365,7 +363,7 @@ void MainWindow::setOrderLayers()
         _displayMode == World::DisplayMode::Food)
     {
         _regionsItem->setZValue(static_cast<int>(LayerLevel::Region));
-        _clansItem->setZValue(static_cast<int>(LayerLevel::Clan));
+        _cellsItem->setZValue(static_cast<int>(LayerLevel::Cell));
     }
 
 }
@@ -384,9 +382,9 @@ void MainWindow::slotRadioButtons()
     _world->getRegionsImage(regionsImage, _displayMode);
     _regionsItem->setPixmap(QPixmap::fromImage(regionsImage));
 
-    QImage clansImage(_world->width(), _world->height(), QImage::Format_ARGB32);
-    _world->getClansImage(clansImage, _displayMode);
-    _clansItem->setPixmap(QPixmap::fromImage(clansImage));
+    QImage cellsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    _world->getCellsImage(cellsImage, _displayMode);
+    _cellsItem->setPixmap(QPixmap::fromImage(cellsImage));
 
     setOrderLayers();
 }
