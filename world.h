@@ -17,7 +17,7 @@ class World
 {
 public:
     static const QPoint ClanUndefined;
-    enum class DisplayMode{Сommon, Food, Population};
+    enum class DisplayMode{Сommon, Food, Strength};
 
     World(int w = 0, int h = 0);
     ~World();
@@ -61,6 +61,9 @@ public:
      */
     void getNumsOfEmptySpaces(QList<int> &list);
 
+    /* возвращает случайное свободное место рядом с pos,
+     * если таковых нет, то возвращает World::ClanUndefined = QPoint(-1,-1)
+     */
     QPoint randomEmptySpaceNearby(QPoint pos);
 
     /* возвращает число живых кланов*/
@@ -88,8 +91,13 @@ public:
     //если это возможно, то убить клан по направлению поворота и забрать его еду, иначе false
     bool attack(QPoint *pos, Clan *clan);
 
+    //создать дочерний клан если это возможно, pos - позиция родителя
     bool born(QPoint pos, Clan *clan);
 
+    //повышает или понижает силу на 1 по направлению к цели, снимает за это 50 еды
+    void aimStrength(int target, Clan *clan);
+
+    //при выходе pos за границы мира, возвращает на место так будто мир закольцован
     void returnPosToWorld(QPoint *pos);
 private:
     QList<Clan*> _clans;

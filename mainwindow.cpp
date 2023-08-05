@@ -12,6 +12,7 @@
  *2 завершающих действия до заверщения кода
  *
  *Идеи по функционалу клана
+ *отрстреливание ребенка
  *модификаторы на атаку/защиту/добычу/перемещение, в виде множителя, но если лучше одно то чуже другое
  *свой/чужой?
  *
@@ -69,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
     //соединяем слот выбора режима отображения с радио-кнопками
     _displayMode = World::DisplayMode::Сommon;
     connect(ui->commonMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
-    connect(ui->popMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    connect(ui->strengthMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     connect(ui->foodMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
 
     _world = new World;    
@@ -82,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     disconnect(ui->commonMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
-    disconnect(ui->popMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    disconnect(ui->strengthMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     disconnect(ui->foodMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     disconnect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
     disconnect(_scene, &PaintableScene::signalMidButton, this, &MainWindow::slotMidButton);
@@ -123,7 +124,7 @@ void MainWindow::on_createWorld_clicked()
     setEnabledWorldChangeInterface(true);
     ui->commonMode->setEnabled(true);
     ui->foodMode->setEnabled(true);
-    ui->popMode->setEnabled(true);
+    ui->strengthMode->setEnabled(true);
 }
 
 
@@ -185,6 +186,9 @@ void MainWindow::run()
     _world->getClansImage(clansImage, _displayMode);
     _clansItem->setPixmap(QPixmap::fromImage(clansImage));
 
+    QImage regionsImage(_world->width(), _world->height(), QImage::Format_ARGB32);
+    _world->getRegionsImage(regionsImage, _displayMode);
+    _regionsItem->setPixmap(QPixmap::fromImage(regionsImage));
 
     //отслеживаем перемещение выбранного клана
     //если клан был удален, то slotSelectedClanKilled установил _selectedClan = nullptr
@@ -296,6 +300,7 @@ void MainWindow::displayInfo()
             str += QString::number(static_cast<int>(genom[i])) + ' ';
         ui->genom->setText(str);
         ui->food->setNum(_selectedClan->getFood());
+        ui->strength->setNum(_selectedClan->getStrength());
     }
     else
         clearInfo();
@@ -321,6 +326,7 @@ void MainWindow::clearInfo()
 {
     ui->genom->clear();
     ui->food->clear();
+    ui->strength->clear();
 }
 
 void MainWindow::fillWorldWithRegions()
@@ -355,7 +361,7 @@ void MainWindow::setEnabledWorldChangeInterface(bool x)
 void MainWindow::setOrderLayers()
 {
     if (_displayMode == World::DisplayMode::Сommon ||
-        _displayMode == World::DisplayMode::Population ||
+        _displayMode == World::DisplayMode::Strength ||
         _displayMode == World::DisplayMode::Food)
     {
         _regionsItem->setZValue(static_cast<int>(LayerLevel::Region));
@@ -368,8 +374,8 @@ void MainWindow::slotRadioButtons()
 {
     if (ui->commonMode->isChecked())
         _displayMode = World::DisplayMode::Сommon;
-    if (ui->popMode->isChecked())
-        _displayMode = World::DisplayMode::Population;
+    if (ui->strengthMode->isChecked())
+        _displayMode = World::DisplayMode::Strength;
     if (ui->foodMode->isChecked())
         _displayMode = World::DisplayMode::Food;
 

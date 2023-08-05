@@ -51,6 +51,11 @@ void World::getClansImage(QImage &img, DisplayMode mode)
                     green /= Clan::_maxFood;
                     img.setPixelColor(x,y,QColor::fromRgbF(1 - green, green, 0, 1));
                 }
+                else if (mode == DisplayMode::Strength)
+                {
+
+                    img.setPixelColor(x,y,QColor(255 / static_cast<float>(Clan::_maxStrength) * clan->getStrength(),0,0,255));
+                }
 
             }
             else
@@ -201,11 +206,26 @@ void World::run()
                         if (attack(&pos, clan))
                             break;
                     }
+                    if (genom[i] == 14)
+                    {
+                        aimStrength(1, clan);
+                    }
+                    if (genom[i] == 15)
+                    {
+                        aimStrength(2, clan);
+                    }
+                    if (genom[i] == 16)
+                    {
+                        aimStrength(3, clan);
+                    }
+                    if (genom[i] == 17)
+                    {
+                        aimStrength(4, clan);
+                    }
                 }
-
                 //приверяем выживает ли клан, если нет убираем его
                 clan->survive();
-                if (clan->getFood() >= 310)
+                if (clan->getFood() >= 300)
                     born(pos, clan);
                 if (!clan->isAlive())
                 {
@@ -259,10 +279,10 @@ bool World::attack(QPoint *pos, Clan *clan)
     returnPosToWorld(&target);
 
     Clan *enemy = _clans[target.x() * _h + target.y()];
-    if (enemy)
+    if (enemy && enemy->getStrength() <= clan->getStrength())
     {
         _clans[target.x() * _h + target.y()] = nullptr;
-        clan->increaseFood(enemy->getFood());
+        clan->increaseFood(enemy->getFood() * 2 / 3);
         enemy->kill();
         return true;
     }
@@ -279,6 +299,18 @@ bool World::born(QPoint pos, Clan *clan)
     son->increaseFood(10);
     clan->increaseFood(-10);
     return true;
+}
+
+void World::aimStrength(int target, Clan *clan)
+{
+    if (clan->getStrength() != target && clan->getFood() >= 50)
+    {
+        if (clan->getStrength() - target > 0)
+            clan->setStrength(clan->getStrength() - 1);
+        else
+            clan->setStrength(clan->getStrength() + 1);
+        clan->increaseFood(-50);
+    }
 }
 
 void World::returnPosToWorld(QPoint *pos)
