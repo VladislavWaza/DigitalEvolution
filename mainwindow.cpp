@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->commonMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     connect(ui->strengthMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     connect(ui->foodMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    connect(ui->ageMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
 
     _world = new World;    
     _selectedCell = nullptr;
@@ -83,6 +84,7 @@ MainWindow::~MainWindow()
     disconnect(ui->commonMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     disconnect(ui->strengthMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     disconnect(ui->foodMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
+    disconnect(ui->ageMode, &QRadioButton::clicked, this, &MainWindow::slotRadioButtons);
     disconnect(_scene, &PaintableScene::signalPainting, this, &MainWindow::slotPainting);
     disconnect(_scene, &PaintableScene::signalMidButton, this, &MainWindow::slotMidButton);
     delete _world;
@@ -122,6 +124,7 @@ void MainWindow::on_createWorld_clicked()
     setEnabledWorldChangeInterface(true);
     ui->commonMode->setEnabled(true);
     ui->foodMode->setEnabled(true);
+    ui->ageMode->setEnabled(true);
     ui->strengthMode->setEnabled(true);
 }
 
@@ -295,9 +298,14 @@ void MainWindow::displayInfo()
         _selectedCell->getGenom(genom);
         QString str;
         for (int i = 0; i < Cell::_size; ++i)
+        {
             str += QString::number(static_cast<int>(genom[i])) + ' ';
+            if ((i + 1) % 8 == 0)
+                str += '\n';
+        }
         ui->genom->setText(str);
         ui->food->setNum(_selectedCell->getFood());
+        ui->age->setNum(_selectedCell->getAge());
         ui->strength->setNum(_selectedCell->getStrength());
     }
     else
@@ -325,6 +333,7 @@ void MainWindow::clearInfo()
     ui->genom->clear();
     ui->food->clear();
     ui->strength->clear();
+    ui->age->clear();
 }
 
 void MainWindow::fillWorldWithRegions()
@@ -360,7 +369,8 @@ void MainWindow::setOrderLayers()
 {
     if (_displayMode == World::DisplayMode::Сommon ||
         _displayMode == World::DisplayMode::Strength ||
-        _displayMode == World::DisplayMode::Food)
+        _displayMode == World::DisplayMode::Food ||
+        _displayMode == World::DisplayMode::Age)
     {
         _regionsItem->setZValue(static_cast<int>(LayerLevel::Region));
         _cellsItem->setZValue(static_cast<int>(LayerLevel::Cell));
@@ -376,6 +386,8 @@ void MainWindow::slotRadioButtons()
         _displayMode = World::DisplayMode::Strength;
     if (ui->foodMode->isChecked())
         _displayMode = World::DisplayMode::Food;
+    if (ui->ageMode->isChecked())
+        _displayMode = World::DisplayMode::Age;
 
 
     QImage regionsImage(_world->width(), _world->height(), QImage::Format_ARGB32);

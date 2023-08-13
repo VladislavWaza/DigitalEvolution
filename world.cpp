@@ -56,6 +56,14 @@ void World::getCellsImage(QImage &img, DisplayMode mode)
 
                     img.setPixelColor(x,y,QColor(255 / static_cast<float>(Cell::_maxStrength) * cell->getStrength(),0,0,255));
                 }
+                else if (mode == DisplayMode::Age)
+                {
+                    int blue = 255 / static_cast<float>(Cell::_maxAge / 10) * cell->getAge();
+                    if (blue > 255)
+                        blue = 255;
+                    int red = 255 / static_cast<float>(Cell::_maxAge) * cell->getAge();
+                    img.setPixelColor(x,y,QColor(red, 0, blue,255));
+                }
 
             }
             else
@@ -173,7 +181,6 @@ void World::run()
     QList<Cell*> oldCells(_cells);
     Cell *cell;
     uint8_t genom[Cell::_size];
-    QPoint pos;
 
     for (int x = 0; x < _w; ++x)
     {
@@ -182,6 +189,9 @@ void World::run()
             cell = oldCells[x * _h + y];
             if (cell && cell->isAlive())
             {
+                QPoint pos;
+                int operationCounter = 0;
+                int semiFinalOperationCounter = 0;
                 pos.rx() = x;
                 pos.ry() = y;
                 cell->getGenom(genom);
@@ -189,38 +199,53 @@ void World::run()
                 //выполняем команды
                 for (int i = 0; i < Cell::_size; ++i)
                 {
+                    if (operationCounter >= 15)
+                        break;
+                    if (semiFinalOperationCounter >= 2)
+                        break;
+                    ++operationCounter;
                     if (genom[i] >= 0 && genom[i] <= 7)
+                    {
+                        cell->increaseFood(-1);
                         cell->setDirection(Cell::_directions[genom[i]]);
+                    }
                     if (genom[i] == 8 || genom[i] == 9)
                     {
                         if (move(&pos, cell))
-                            break;
+                            ++semiFinalOperationCounter;
                     }
                     if (genom[i] == 10 || genom[i] == 11)
                     {
                         collectFood(pos, cell);
-                        break;
+                        ++semiFinalOperationCounter;
                     }
                     if (genom[i] == 12 || genom[i] == 13)
                     {
                         if (attack(&pos, cell))
-                            break;
+                            ++semiFinalOperationCounter;
                     }
-                    if (genom[i] == 14)
+                    if (genom[i] >= 14 && genom[i] <= 17)
                     {
-                        aimStrength(1, cell);
+                        aimStrength(genom[i] - 13, cell);
                     }
-                    if (genom[i] == 15)
+                    if (genom[i] == 18 || genom[i] == 19)
                     {
-                        aimStrength(2, cell);
-                    }
-                    if (genom[i] == 16)
-                    {
-                        aimStrength(3, cell);
-                    }
-                    if (genom[i] == 17)
-                    {
-                        aimStrength(4, cell);
+                        if ((genom[i] == 18 && isEmptyAhead(pos, cell)) ||
+                            (genom[i] == 19 && isRelativeAhead(pos, cell)))
+                        {
+                            //перешагиваем через один ген и выполняем геном дальше
+                            ++i;
+                            continue;
+                        }
+                        else
+                        {
+                            //переходим в ген указанный в следующем гене и выполняем геном оттуда
+                            if (i + 1 < Cell::_size)
+                            {
+                                i = genom[i+1] - 1;
+                                continue;
+                            }
+                        }
                     }
                 }
                 //приверяем выживает ли клетка, если нет убираем её
@@ -251,6 +276,7 @@ void World::run()
 
 bool World::move(QPoint *pos, Cell *cell)
 {
+    cell->increaseFood(-2);
     //вычисляем место перемещения
     QPoint newPoint(*pos);
     newPoint += cell->getDirection();
@@ -268,11 +294,12 @@ bool World::move(QPoint *pos, Cell *cell)
 
 void World::collectFood(QPoint pos, Cell *cell)
 {
-        cell->increaseFood(3);
+    cell->increaseFood(3);
 }
 
 bool World::attack(QPoint *pos, Cell *cell)
 {
+    cell->increaseFood(-2);
     //вычисляем место атаки
     QPoint target(*pos);
     target += cell->getDirection();
@@ -296,8 +323,8 @@ bool World::born(QPoint pos, Cell *cell)
         return false;
     Cell* son = new Cell(*cell);
     _cells[newPos.x() * _h + newPos.y()] = son;
+    cell->increaseFood(-200);
     son->increaseFood(10);
-    cell->increaseFood(-10);
     return true;
 }
 
@@ -321,4 +348,28 @@ void World::returnPosToWorld(QPoint *pos)
     pos->ry() %= _h;
     if (pos->y() < 0)
         pos->ry() += _h;
+}
+
+bool World::isEmptyAhead(QPoint pos, Cell *cell)
+{
+    QPoint newPoint(pos);
+    newPoint += cell->getDirection();
+    returnPosToWorld(&newPoint);
+    if (!_cells[newPoint.x() * _h + newPoint.y()]) //если не занято
+        return true;
+    return false;
+}
+
+bool World::isRelativeAhead(QPoint pos, Cell *cell)
+{
+    QPoint newPoint(pos);
+    newPoint += cell->getDirection();
+    returnPosToWorld(&newPoint);
+    if (_cells[newPoint.x() * _h + newPoint.y()]) //если не пусто
+    {
+        Cell* cell2 = _cells[newPoint.x() * _h + newPoint.y()];
+        if (cell->calculateGenomesDiff(*cell2) <= 2)
+            return true;
+    }
+    return false;
 }

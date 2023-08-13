@@ -17,7 +17,7 @@ class World
 {
 public:
     static const QPoint CellUndefined;
-    enum class DisplayMode{Сommon, Food, Strength};
+    enum class DisplayMode{Сommon, Food, Strength, Age};
 
     World(int w = 0, int h = 0);
     ~World();
@@ -99,6 +99,12 @@ public:
 
     //при выходе pos за границы мира, возвращает на место так будто мир закольцован
     void returnPosToWorld(QPoint *pos);
+
+    //возвращает true если по направленю взгляда клетки пусто, иначе false
+    bool isEmptyAhead(QPoint pos, Cell *cell);
+
+    //возвращает true если по направленю взгляда клетки есть клетка и различие в их геноме не более 2 генов, иначе false
+    bool isRelativeAhead(QPoint pos, Cell *cell);
 private:
     QList<Cell*> _cells;
     QList<Region*> _regions;

@@ -20,6 +20,7 @@ Cell::Cell(GenomeInitType genomeInitType)
     _direction = Cell::_directions[0];
     _isAlive = true;
     _color = Qt::darkCyan;
+    _age = 0;
 }
 
 Cell::Cell(const Cell &parent)
@@ -35,6 +36,7 @@ Cell::Cell(const Cell &parent)
     _direction = Cell::_directions[0];
     _isAlive = true;
     _color = Qt::darkCyan;
+    _age = 0;
 }
 
 Cell::~Cell()
@@ -50,6 +52,17 @@ void Cell::getGenom(uint8_t *ptr) const
 {
     for (int i = 0; i < _size; ++i)
         ptr[i] = _genom[i];
+}
+
+int Cell::calculateGenomesDiff(const Cell &other) const
+{
+    int c = 0;
+    for (int i = 0; i < Cell::_size; ++i)
+    {
+        if (_genom[i] != other._genom[i])
+            ++c;
+    }
+    return c;
 }
 
 void Cell::setDirection(QPoint direction)
@@ -85,6 +98,11 @@ void Cell::increaseFood(int food)
         _food = _maxFood;
 }
 
+int Cell::getAge()
+{
+    return _age;
+}
+
 bool Cell::isAlive()
 {
     return _isAlive;
@@ -98,7 +116,9 @@ void Cell::kill()
 
 void Cell::survive()
 {
+    ++_age;
+
     _food -= _strength;
-    if (_food < 0)
+    if (_food < 0 || _age > _maxAge)
         kill();
 }
