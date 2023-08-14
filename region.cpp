@@ -1,20 +1,15 @@
 #include "region.h"
 
-Region::Region()
+Region::Region(float light)
 {
-    _color = Qt::gray;
+    _light = light * _maxLight;
 }
 
 Region::~Region()
 {
 }
 
-QColor Region::getColor()
+float Region::getLight()
 {
-    return _color;
-}
-
-void Region::setColor(QColor color)
-{
-    _color = color;
+    return _light;
 }

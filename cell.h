@@ -25,8 +25,8 @@ public:
     int getStrength();
     void setStrength(int strength);
 
-    int getFood();
-    void increaseFood(int food);
+    float getFood();
+    void increaseFood(float food);
 
     void increaseAge();
     int getAge();
@@ -50,7 +50,7 @@ signals:
     void signalKilled();
 private:
     uint8_t* _genom;
-    int _food;
+    float _food;
     int _strength;
     int _age;
     QPoint _direction;

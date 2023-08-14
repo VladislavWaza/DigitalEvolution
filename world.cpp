@@ -85,7 +85,10 @@ void World::getRegionsImage(QImage &img, DisplayMode mode)
         {
             region = _regions[x * _h + y];
             if (region)
-                img.setPixelColor(x,y,region->getColor());
+            {
+                float bright = region->getLight() / Region::_maxLight;
+                img.setPixelColor(x,y,QColor::fromRgbF(bright, bright, bright));
+            }
             else
                 img.setPixelColor(x,y,QColor(0,0,0,0));
         }
@@ -326,7 +329,7 @@ bool World::move(QPoint *pos, Cell *cell)
 
 void World::collectFood(QPoint pos, Cell *cell)
 {
-    cell->increaseFood(3);
+    cell->increaseFood(_regions[pos.x() * _h + pos.y()]->getLight());
 }
 
 bool World::attack(QPoint *pos, Cell *cell)

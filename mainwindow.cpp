@@ -212,8 +212,9 @@ void MainWindow::run()
     ui->time->setNum(QTime::currentTime().msecsSinceStartOfDay() - _ms);
     _ms = QTime::currentTime().msecsSinceStartOfDay();
 
+    QPixmap::fromImage(regionsImage).save("00.png");
 
-    if (ui->stepNumber->text().toInt() % 50 == 0)
+    if (ui->stepNumber->text().toInt() % 10 == 0)
         QPixmap::fromImage(cellsImage).save(ui->stepNumber->text() + ".png");
 }
 
@@ -236,7 +237,7 @@ void MainWindow::slotPainting(QGraphicsSceneMouseEvent *mouseEvent)
                 if (circle.contains(QPointF(x, y)))
                 {
                     Region *region = _world->getRegion(x,y);
-                    region->setColor(Qt::yellow);
+                    //region->setColor(Qt::yellow);
                     if (_selectedRegion == region)
                         displayInfo();
                 }
@@ -357,16 +358,14 @@ void MainWindow::fillWorldWithRegions()
     {
         for (int j = 0; j < _world->height(); ++j)
         {
-            region = new Region;
-            _world->setRegion(i,j,region);
-
             //так как шум находится в диапазоне -sqrt(2)/2 ... sqrt(2)/2 перенесем на -1 1
             float bright = pn.noise(i + 0.5,j + 0.5) / sqrt(2.0) + 0.5;
             bright += pn2.noise(i + 0.5,j + 0.5) / sqrt(2.0) + 0.5;
             bright += pn3.noise(i + 0.5,j + 0.5) / sqrt(2.0) + 0.5;
             bright /= 3;
 
-            region->setColor(QColor::fromRgbF(bright,bright,bright));
+            region = new Region(bright);
+            _world->setRegion(i,j,region);
         }
     }
 }

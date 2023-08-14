@@ -4,13 +4,14 @@
 class Region
 {
 public:
-    Region();
+    /*принимет light от 0 до 1 и сам переносит на 0 - _maxLight*/
+    Region(float light);
     ~Region();
-    QColor getColor();
-    void setColor(QColor color);
+    float getLight();
 
+    static const int _maxLight = 5;
 private:
-    QColor _color;
+    float _light;
 };
 
 #endif // REGION_H

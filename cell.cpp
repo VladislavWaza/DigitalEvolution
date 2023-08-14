@@ -91,12 +91,12 @@ void Cell::setStrength(int strength)
         _strength = strength;
 }
 
-int Cell::getFood()
+float Cell::getFood()
 {
     return _food;
 }
 
-void Cell::increaseFood(int food)
+void Cell::increaseFood(float food)
 {
     _food += food;
     if (_food > _maxFood)
@@ -124,6 +124,6 @@ void Cell::survive()
     ++_age;
 
     _food -= _strength;
-    if (_food < 0 || _age > _maxAge)
+    if (_food <= 0 || _age > _maxAge)
         kill();
 }
