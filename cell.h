@@ -7,7 +7,7 @@ class Cell : public QObject
 {
     Q_OBJECT
 public:
-    enum class GenomeInitType{Random};
+    enum class GenomeInitType{Random, Collector};
     Cell(GenomeInitType genomeInitType = GenomeInitType::Random);
     Cell(const Cell& parent);
     ~Cell();
@@ -41,8 +41,8 @@ public:
 
     static const int _maxFood = 1000;
     static const int _maxAge = 2000;
-    static const int _percentMutation = 25;
-    static const int _maxGene = 20;
+    static const int _percentMutation = 50;
+    static const int _maxGene = 23;
     static const int _maxStrength = 4;
     static const int _size = 12; //должно делиться на 4
     static const QPoint _directions[];

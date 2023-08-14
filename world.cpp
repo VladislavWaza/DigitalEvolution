@@ -42,7 +42,9 @@ void World::getCellsImage(QImage &img, DisplayMode mode)
             if (cell)
             {
                 if (mode == DisplayMode::Сommon)
+                {
                     img.setPixelColor(x,y,cell->getColor());
+                }
                 else if (mode == DisplayMode::Food)
                 {
                     float green = cell->getFood();
@@ -149,16 +151,31 @@ void World::getNumsOfEmptySpaces(QList<int> &list)
     }
 }
 
-QPoint World::randomEmptySpaceNearby(QPoint pos)
+QPoint World::randomEmptySpaceNearby(QPoint pos, int distance)
 {
     QVector<QPoint> seq;
-    QPoint newPos;
+    QPoint tempPos, newPos;
     for (int i = 0; i < 8; ++i)
     {
-        newPos = pos + Cell::_directions[i];
-        returnPosToWorld(&newPos);
-        if (!_cells[newPos.x() * _h + newPos.y()])
-            seq.append(newPos);
+        for (int j = 1; j <= distance; ++j)
+        {
+            tempPos = pos + j * Cell::_directions[i];
+            returnPosToWorld(&tempPos);
+            if (_cells[tempPos.x() * _h + tempPos.y()]) //если встретили препятствие
+            {
+                if (j != 1) //если пустое место уже встречалось
+                {
+                    newPos = tempPos - Cell::_directions[i]; //возвращаемся назад
+                    returnPosToWorld(&newPos);
+                    seq.append(newPos); //добавляем в последовательность
+                }
+                break;
+            }
+            else if (j == distance) //дошли до желаемого расстояния и не встретили препятствия
+            {
+                seq.append(tempPos); //добавляем в последовательность
+            }
+        }
     }
     if (seq.isEmpty())
         return World::CellUndefined;
@@ -196,42 +213,46 @@ void World::run()
                 pos.ry() = y;
                 cell->getGenom(genom);
 
-                //выполняем команды
+                //выполняем команды генома
                 for (int i = 0; i < Cell::_size; ++i)
                 {
+                    //если было совершено много операций выходим
                     if (operationCounter >= 15)
                         break;
+                    ++operationCounter;
+
+                    //если было совершено 2 завершающие операции выходим
                     if (semiFinalOperationCounter >= 2)
                         break;
-                    ++operationCounter;
-                    if (genom[i] >= 0 && genom[i] <= 7)
+
+
+                    if (genom[i] >= 0 && genom[i] <= 7) //поворот
                     {
-                        cell->increaseFood(-1);
                         cell->setDirection(Cell::_directions[genom[i]]);
                     }
-                    if (genom[i] == 8 || genom[i] == 9)
+                    if (genom[i] == 8 || genom[i] == 9) //движение
                     {
                         if (move(&pos, cell))
                             ++semiFinalOperationCounter;
                     }
-                    if (genom[i] == 10 || genom[i] == 11)
+                    if (genom[i] == 10 || genom[i] == 11) //сбор еды
                     {
                         collectFood(pos, cell);
                         ++semiFinalOperationCounter;
                     }
-                    if (genom[i] == 12 || genom[i] == 13)
+                    if (genom[i] == 12 || genom[i] == 13) //атака
                     {
                         if (attack(&pos, cell))
                             ++semiFinalOperationCounter;
                     }
-                    if (genom[i] >= 14 && genom[i] <= 17)
+                    if (genom[i] >= 14 && genom[i] <= 17) //изменение силы
                     {
                         aimStrength(genom[i] - 13, cell);
                     }
-                    if (genom[i] == 18 || genom[i] == 19)
+                    if (genom[i] == 18 || genom[i] == 19) // условные операции
                     {
-                        if ((genom[i] == 18 && isEmptyAhead(pos, cell)) ||
-                            (genom[i] == 19 && isRelativeAhead(pos, cell)))
+                        if ((genom[i] == 18 && isEmptyAhead(pos, cell)) || //пусто ли впереди
+                            (genom[i] == 19 && isRelativeAhead(pos, cell))) //родственник ли впереди
                         {
                             //перешагиваем через один ген и выполняем геном дальше
                             ++i;
@@ -242,16 +263,27 @@ void World::run()
                             //переходим в ген указанный в следующем гене и выполняем геном оттуда
                             if (i + 1 < Cell::_size)
                             {
-                                i = genom[i+1] - 1;
+                                i = genom[i + 1] - 1;
                                 continue;
                             }
                         }
                     }
+                    if (genom[i] == 20 || genom[i] == 21 || genom[i] == 22)
+                    {
+                        born(pos, cell, genom[i] - 19);
+                    }
+                    if (genom[i] == 23)
+                    {
+                        born(pos, cell, 10);
+                    }
                 }
+
+                //отпочковываем потомка
+                if (cell->getFood() >= 300)
+                    born(pos, cell, 1);
+
                 //приверяем выживает ли клетка, если нет убираем её
                 cell->survive();
-                if (cell->getFood() >= 300)
-                    born(pos, cell);
                 if (!cell->isAlive())
                 {
                     _cells[pos.x() * _h + pos.y()] = nullptr;
@@ -316,16 +348,20 @@ bool World::attack(QPoint *pos, Cell *cell)
     return false;
 }
 
-bool World::born(QPoint pos, Cell *cell)
+bool World::born(QPoint pos, Cell *cell, int dist)
 {
-    QPoint newPos = randomEmptySpaceNearby(pos);
-    if (newPos == World::CellUndefined)
-        return false;
-    Cell* son = new Cell(*cell);
-    _cells[newPos.x() * _h + newPos.y()] = son;
-    cell->increaseFood(-200);
-    son->increaseFood(10);
-    return true;
+    if (cell->getFood() >= 200)
+    {
+        QPoint newPos = randomEmptySpaceNearby(pos, dist);
+        if (newPos == World::CellUndefined)
+            return false;
+        Cell* son = new Cell(*cell);
+        _cells[newPos.x() * _h + newPos.y()] = son;
+        cell->increaseFood(-200);
+        son->increaseFood(10);
+        return true;
+    }
+    return false;
 }
 
 void World::aimStrength(int target, Cell *cell)

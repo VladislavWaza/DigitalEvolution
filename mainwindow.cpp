@@ -6,20 +6,15 @@
 #include "graphicsviewzoom.h"
 /*надо сделать
  *выбор кисти биома и сохранение биома в Region
- *тепловые карты
  *от чего зависит еда на территории
  *цвета клеток
- *2 завершающих действия до заверщения кода
  *
  *Идеи по функционалу клеток
- *отрстреливание ребенка
  *модификаторы на атаку/защиту/добычу/перемещение, в виде множителя, но если лучше одно то чуже другое
- *свой/чужой?
  *
  *переход
  *набег, вымогтальсто(не заврешает?)
  *торговля или сотрудничество(не заврешают?)
- *собирательстов или охота
  *
  *
  *Идеи по функционалу регионов
@@ -64,6 +59,10 @@ MainWindow::MainWindow(QWidget *parent)
     //число клеток
     ui->cellsNumberToAdd->setMinimum(1);
     ui->cellsNumberToAdd->setMaximum(100000);
+
+    //тип добавляемых клеток
+    ui->cellsType->addItem("Случайные");
+    ui->cellsType->addItem("Собиратели");
 
     //соединяем слот выбора режима отображения с радио-кнопками
     _displayMode = World::DisplayMode::Сommon;
@@ -132,6 +131,11 @@ void MainWindow::on_createWorld_clicked()
 void MainWindow::on_addCells_clicked()
 {
     int n = ui->cellsNumberToAdd->value();
+    Cell::GenomeInitType mode;
+    if (ui->cellsType->currentText() == "Случайные")
+        mode = Cell::GenomeInitType::Random;
+    if (ui->cellsType->currentText() == "Собиратели")
+        mode = Cell::GenomeInitType::Collector;
 
     //запрашиваем совобдные места
     QList<int> emptySpaces;
@@ -149,7 +153,7 @@ void MainWindow::on_addCells_clicked()
     {
         int x = emptySpaces[i] / _world->height();
         int y = emptySpaces[i] % _world->height();
-        cell = new Cell;
+        cell = new Cell(mode);
         _world->addCell(x, y, cell);
     }
 
@@ -206,6 +210,10 @@ void MainWindow::run()
     ui->stepNumber->setNum(ui->stepNumber->text().toInt() + 1);
     ui->time->setNum(QTime::currentTime().msecsSinceStartOfDay() - _ms);
     _ms = QTime::currentTime().msecsSinceStartOfDay();
+
+
+    if (ui->stepNumber->text().toInt() % 50 == 0)
+        QPixmap::fromImage(cellsImage).save(ui->stepNumber->text() + ".png");
 }
 
 void MainWindow::slotSelectedCellKilled()
@@ -363,6 +371,7 @@ void MainWindow::setEnabledWorldChangeInterface(bool x)
     ui->label_4->setEnabled(x);
     ui->addCells->setEnabled(x);
     ui->cellsNumberToAdd->setEnabled(x);
+    ui->cellsType->setEnabled(x);
 }
 
 void MainWindow::setOrderLayers()

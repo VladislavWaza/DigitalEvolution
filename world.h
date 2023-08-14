@@ -25,7 +25,10 @@ public:
     int width();
     int height();
 
+    /*изображение с клетками на прозрачном фоне в заданном режиме отображения*/
     void getCellsImage(QImage &img, DisplayMode mode);
+
+    /*изображение с регионами на прозрачном фоне в заданном режиме отображения*/
     void getRegionsImage(QImage &img, DisplayMode mode);
 
     /*Возвращает указатель на клетку по указанным координатам
@@ -61,10 +64,11 @@ public:
      */
     void getNumsOfEmptySpaces(QList<int> &list);
 
-    /* возвращает случайное свободное место рядом с pos,
-     * если таковых нет, то возвращает World::CellUndefined = QPoint(-1,-1)
+    /* возвращает случайное место рядом с pos на расстоянии distance,
+     * если до достижения distance было встречено препятсвие, то будет учитываться место до препятствия
+     * если мест нет, то возвращает World::CellUndefined = QPoint(-1,-1)
      */
-    QPoint randomEmptySpaceNearby(QPoint pos);
+    QPoint randomEmptySpaceNearby(QPoint pos, int distance);
 
     /* возвращает число живых клеток*/
     int cellsNumber();
@@ -83,16 +87,23 @@ public:
      */
     void run();
 
+private:
+    QList<Cell*> _cells;
+    QList<Region*> _regions;
+    int _w, _h;
+
+
     //если это возможно, то передвинуть клетку вперед согласно её направлению, иначе false
     bool move(QPoint *pos, Cell *cell);
 
+    //собрать еду согласно позиции в мире
     void collectFood(QPoint pos, Cell *cell);
 
     //если это возможно, то убить клетку по направлению поворота и забрать её еду, иначе false
     bool attack(QPoint *pos, Cell *cell);
 
-    //создать дочернюю клетку если это возможно, pos - позиция родителя
-    bool born(QPoint pos, Cell *cell);
+    //создать дочернюю клетку если это возможно, pos - позиция родителя, dist - желаемое расстояние до дочерней клетки
+    bool born(QPoint pos, Cell *cell, int dist);
 
     //повышает или понижает силу на 1 по направлению к цели, снимает за это 50 еды
     void aimStrength(int target, Cell *cell);
@@ -105,10 +116,6 @@ public:
 
     //возвращает true если по направленю взгляда клетки есть клетка и различие в их геноме не более 2 генов, иначе false
     bool isRelativeAhead(QPoint pos, Cell *cell);
-private:
-    QList<Cell*> _cells;
-    QList<Region*> _regions;
-    int _w, _h;
 };
 
 

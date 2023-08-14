@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>822</width>
-    <height>669</height>
+    <height>739</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -77,7 +77,14 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="1" column="0" colspan="2">
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="cellsNumberToAdd">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
          <widget class="QPushButton" name="addCells">
           <property name="enabled">
            <bool>false</bool>
@@ -97,8 +104,8 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QSpinBox" name="cellsNumberToAdd">
+        <item row="1" column="0" colspan="2">
+         <widget class="QComboBox" name="cellsType">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -207,22 +214,8 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLayout_5">
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_10">
-          <property name="text">
-           <string>Сила</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_9">
-          <property name="text">
-           <string>Еда</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLabel" name="food">
+        <item row="3" column="1">
+         <widget class="QLabel" name="age">
           <property name="text">
            <string/>
           </property>
@@ -235,10 +228,10 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QLabel" name="strength">
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_12">
           <property name="text">
-           <string/>
+           <string>Возраст</string>
           </property>
          </widget>
         </item>
@@ -252,17 +245,31 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
-         <widget class="QLabel" name="age">
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Еда</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="strength">
           <property name="text">
            <string/>
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_12">
+        <item row="1" column="1">
+         <widget class="QLabel" name="food">
           <property name="text">
-           <string>Возраст</string>
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Сила</string>
           </property>
          </widget>
         </item>

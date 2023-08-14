@@ -12,9 +12,14 @@ Cell::Cell(GenomeInitType genomeInitType)
     {
         for (int i = 0; i < _size/4; ++i)
             *reinterpret_cast<uint32_t*>(&_genom[4*i]) = QRandomGenerator::system()->generate();
+        for (int i = 0; i < _size; ++i)
+            _genom[i] %= (_maxGene + 1);
     }
-    for (int i = 0; i < _size; ++i)
-        _genom[i] %= (_maxGene + 1);
+    if (genomeInitType == GenomeInitType::Collector)
+    {
+        for (int i = 0; i < _size; ++i)
+            _genom[i] = 10;
+    }
     _food = 1;
     _strength = 1;
     _direction = Cell::_directions[0];
