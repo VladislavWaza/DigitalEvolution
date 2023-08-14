@@ -14,6 +14,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     paintablescene.cpp \
+    perlinnoise.cpp \
     region.cpp \
     world.cpp
 
@@ -22,6 +23,7 @@ HEADERS += \
     graphicsviewzoom.h \
     mainwindow.h \
     paintablescene.h \
+    perlinnoise.h \
     region.h \
     world.h
 

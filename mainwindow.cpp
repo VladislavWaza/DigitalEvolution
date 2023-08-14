@@ -4,6 +4,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "graphicsviewzoom.h"
+#include "perlinnoise.h"
 /*надо сделать
  *выбор кисти биома и сохранение биома в Region
  *от чего зависит еда на территории
@@ -346,6 +347,11 @@ void MainWindow::clearInfo()
 
 void MainWindow::fillWorldWithRegions()
 {
+    //заполняем трехоктавным шумом перлина
+    PerlinNoise pn(_world->height(), _world->width(), 2);
+    PerlinNoise pn2(_world->height(), _world->width(), 4);
+    PerlinNoise pn3(_world->height(), _world->width(), 8);
+
     Region* region;
     for (int i = 0; i < _world->width(); ++i)
     {
@@ -353,7 +359,14 @@ void MainWindow::fillWorldWithRegions()
         {
             region = new Region;
             _world->setRegion(i,j,region);
-            region->setColor(Qt::gray);
+
+            //так как шум находится в диапазоне -sqrt(2)/2 ... sqrt(2)/2 перенесем на -1 1
+            float bright = pn.noise(i + 0.5,j + 0.5) / sqrt(2.0) + 0.5;
+            bright += pn2.noise(i + 0.5,j + 0.5) / sqrt(2.0) + 0.5;
+            bright += pn3.noise(i + 0.5,j + 0.5) / sqrt(2.0) + 0.5;
+            bright /= 3;
+
+            region->setColor(QColor::fromRgbF(bright,bright,bright));
         }
     }
 }
