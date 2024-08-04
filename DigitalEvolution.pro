@@ -9,22 +9,13 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    cell.cpp \
     graphicsviewzoom.cpp \
     main.cpp \
-    mainwindow.cpp \
-    paintablescene.cpp \
-    perlinnoise.cpp \
-    world.cpp
+    mainwindow.cpp
 
 HEADERS += \
-    cell.h \
     graphicsviewzoom.h \
-    mainwindow.h \
-    paintablescene.h \
-    perlinnoise.h \
-    region.h \
-    world.h
+    mainwindow.h
 
 FORMS += \
     mainwindow.ui
