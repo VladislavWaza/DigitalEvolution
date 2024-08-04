@@ -12,7 +12,7 @@ public:
     Cell(const Cell& parent);
     ~Cell();
 
-    QColor getColor();
+    QColor getColor() const {return _color;}
 
     void getGenom(uint8_t *ptr) const;
 
@@ -20,18 +20,18 @@ public:
     int calculateGenomesDiff(const Cell& other) const;
 
     void setDirection(QPoint direction);
-    QPoint getDirection();
+    QPoint getDirection() const {return _direction;}
 
-    int getStrength();
+    int getStrength() const {return _strength;}
     void setStrength(int strength);
 
-    float getFood();
+    float getFood() const {return _food;}
     void increaseFood(float food);
 
     void increaseAge();
-    int getAge();
+    int getAge() const {return _age;}
 
-    bool isAlive();
+    bool isAlive() const {return _isAlive;}
     void kill();
 
     /*вычитает еду за переход на следующий шаг, увеличивет возраст

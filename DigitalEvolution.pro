@@ -15,7 +15,6 @@ SOURCES += \
     mainwindow.cpp \
     paintablescene.cpp \
     perlinnoise.cpp \
-    region.cpp \
     world.cpp
 
 HEADERS += \

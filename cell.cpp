@@ -48,11 +48,6 @@ Cell::~Cell()
 {
 }
 
-QColor Cell::getColor()
-{
-    return _color;
-}
-
 void Cell::getGenom(uint8_t *ptr) const
 {
     for (int i = 0; i < _size; ++i)
@@ -75,25 +70,10 @@ void Cell::setDirection(QPoint direction)
     _direction = direction;
 }
 
-QPoint Cell::getDirection()
-{
-    return _direction;
-}
-
-int Cell::getStrength()
-{
-    return _strength;
-}
-
 void Cell::setStrength(int strength)
 {
     if (strength >= 1 && strength <= _maxStrength)
         _strength = strength;
-}
-
-float Cell::getFood()
-{
-    return _food;
 }
 
 void Cell::increaseFood(float food)
@@ -101,16 +81,6 @@ void Cell::increaseFood(float food)
     _food += food;
     if (_food > _maxFood)
         _food = _maxFood;
-}
-
-int Cell::getAge()
-{
-    return _age;
-}
-
-bool Cell::isAlive()
-{
-    return _isAlive;
 }
 
 void Cell::kill()
