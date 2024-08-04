@@ -34,16 +34,18 @@ void World::getCellsImage(QImage &img, DisplayMode mode)
     img = img.scaled(_w, _h);
     img = img.convertedTo(QImage::Format_ARGB32);
     Cell *cell;
+    QRgb* data = reinterpret_cast<QRgb*>(img.bits());
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
-            cell = _cells[x * _h + y];
+            qsizetype index = x * _h + y;
+            cell = _cells[index];
             if (cell)
             {
                 if (mode == DisplayMode::Сommon)
                 {
-                    img.setPixelColor(x,y,cell->getColor());
+                    data[index] = cell->getColor().rgba();
                 }
                 else if (mode == DisplayMode::Food)
                 {
@@ -51,12 +53,11 @@ void World::getCellsImage(QImage &img, DisplayMode mode)
                     if (green < 0)
                         green = 0;
                     green /= Cell::_maxFood;
-                    img.setPixelColor(x,y,QColor::fromRgbF(1 - green, green, 0, 1));
+                    data[index] = QColor::fromRgbF(1 - green, green, 0, 1).rgba();
                 }
                 else if (mode == DisplayMode::Strength)
                 {
-
-                    img.setPixelColor(x,y,QColor(255 / static_cast<float>(Cell::_maxStrength) * cell->getStrength(),0,0,255));
+                    data[index] = QColor(255 / static_cast<float>(Cell::_maxStrength) * cell->getStrength(),0,0,255).rgba();
                 }
                 else if (mode == DisplayMode::Age)
                 {
@@ -64,12 +65,12 @@ void World::getCellsImage(QImage &img, DisplayMode mode)
                     if (blue > 255)
                         blue = 255;
                     int red = 255 / static_cast<float>(Cell::_maxAge) * cell->getAge();
-                    img.setPixelColor(x,y,QColor(red, 0, blue,255));
+                    data[index] = QColor(red, 0, blue,255).rgba();
                 }
 
             }
             else
-                img.setPixelColor(x,y,QColor(0,0,0,0));
+                data[index] = qRgba(0,0,0,0);
         }
     }
 }
@@ -79,18 +80,21 @@ void World::getRegionsImage(QImage &img, DisplayMode mode)
     img = img.scaled(_w, _h);
     img = img.convertedTo(QImage::Format_ARGB32);
     Region *region;
+    QRgb* data = reinterpret_cast<QRgb*>(img.bits());
+    const float minLight = 1.f / Region::_maxLight;
     for (int x = 0; x < _w; ++x)
     {
         for (int y = 0; y < _h; ++y)
         {
-            region = _regions[x * _h + y];
+            qsizetype index = x * _h + y;
+            region = _regions[index];
             if (region)
             {
-                float bright = region->getLight() / Region::_maxLight;
-                img.setPixelColor(x,y,QColor::fromRgbF(bright, bright, bright));
+                float bright = region->getLight() * minLight;
+                data[index] = QColor::fromRgbF(bright, bright, bright).rgba();
             }
             else
-                img.setPixelColor(x,y,QColor(0,0,0,0));
+                data[index] = qRgba(0,0,0,0);
         }
     }
 }
