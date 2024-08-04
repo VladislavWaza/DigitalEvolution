@@ -212,10 +212,10 @@ void MainWindow::run()
     ui->time->setNum(QTime::currentTime().msecsSinceStartOfDay() - _ms);
     _ms = QTime::currentTime().msecsSinceStartOfDay();
 
-    QPixmap::fromImage(regionsImage).save("00.png");
-
-    if (ui->stepNumber->text().toInt() % 10 == 0)
-        QPixmap::fromImage(cellsImage).save(ui->stepNumber->text() + ".png");
+    //скрины
+    //QPixmap::fromImage(regionsImage).save("00.png");
+    //if (ui->stepNumber->text().toInt() % 10 == 0)
+    //    QPixmap::fromImage(cellsImage).save(ui->stepNumber->text() + ".png");
 }
 
 void MainWindow::slotSelectedCellKilled()
