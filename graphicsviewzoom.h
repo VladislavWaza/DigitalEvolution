@@ -32,10 +32,10 @@ public:
     void setZoomFactorBase(double value);
 
 private:
-    QGraphicsView* _view;
-    Qt::KeyboardModifiers _modifiers;
-    double _zoomFactorBase;
-    QPointF _targetScenePos, _targetViewportPos;
+    QGraphicsView* m_view;
+    Qt::KeyboardModifiers m_modifiers;
+    double m_zoomFactorBase;
+    QPointF m_targetScenePos, m_targetViewportPos;
 
     void zooming(double factor);
     bool eventFilter(QObject* object, QEvent* event);
