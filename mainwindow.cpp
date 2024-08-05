@@ -5,6 +5,7 @@
 #include <QRandomGenerator>
 #include <QTime>
 #include <QGraphicsPixmapItem>
+#include <QGraphicsEllipseItem>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -28,8 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->graphicsView->setScene(m_scene);
 
     //параметры мира
-    m_ui->heightWorld->setMaximum(5000);
-    m_ui->widthWorld->setMaximum(5000);
+    m_ui->heightWorld->setMaximum(10000);
+    m_ui->widthWorld->setMaximum(10000);
     m_ui->heightWorld->setMinimum(50);
     m_ui->widthWorld->setMinimum(50);
 
@@ -46,6 +47,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_createWorld_clicked()
 {
     m_scene->clear();
+    m_ellipseItems.clear();
     m_ui->stepNumber->setNum(0);
 
 
@@ -54,9 +56,25 @@ void MainWindow::on_createWorld_clicked()
     m_scene->setSceneRect(0, 0, m_width, m_height);
     this->addGrid();
 
-    QImage image(m_width, m_height, QImage::Format_ARGB32);
-    image.fill(Qt::black);
-    m_pixmap = m_scene->addPixmap(QPixmap::fromImage(image));
+    //изображение с пикселями
+    //QImage image(m_width, m_height, QImage::Format_ARGB32);
+    //image.fill(Qt::white);
+    //m_pixmap = m_scene->addPixmap(QPixmap::fromImage(image));
+
+    //сцена с кругами
+    /*
+    for (qsizetype x = 0; x < m_width; ++x)
+    {
+        for (qsizetype y = 0; y < m_height; ++y)
+        {
+            auto item = new QGraphicsEllipseItem(x, y, 1, 1);
+            item->setPen(QPen(QBrush(), 0));
+            m_scene->addItem(item);
+            m_ellipseItems.push_back(item);
+        }
+    }
+    */
+
 
     setEnabledWorldChangeInterface(true);
     m_ui->start->setEnabled(true);
@@ -80,8 +98,30 @@ void MainWindow::on_start_clicked()
 
 void MainWindow::run()
 {
+    //2k x 2k = 130мс - //изображение с пикселями
+    /*
     QImage image(m_width, m_height, QImage::Format_ARGB32);
+    QRgb* data = reinterpret_cast<QRgb*>(image.bits());
+    for (qsizetype x = 0; x < m_width; ++x)
+        for (qsizetype y = 0; y < m_height; ++y)
+            data[x * m_height + y] = qRgb(
+                        QRandomGenerator::global()->bounded(256),
+                        QRandomGenerator::global()->bounded(256),
+                        QRandomGenerator::global()->bounded(256));
     m_pixmap->setPixmap(QPixmap::fromImage(image));
+    */
+
+
+    //сцена с кругами 1k x 1k = 3000ms
+    for (auto& item : m_ellipseItems)
+    {
+        item->setBrush(QColor(
+                           QRandomGenerator::global()->bounded(256),
+                           QRandomGenerator::global()->bounded(256),
+                           QRandomGenerator::global()->bounded(256)));
+    }
+
+
 
     //выводим информацию о номере шага, время итерации
     m_ui->stepNumber->setNum(m_ui->stepNumber->text().toInt() + 1);
