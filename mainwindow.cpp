@@ -5,7 +5,6 @@
 #include <QRandomGenerator>
 #include <QTime>
 #include <QGraphicsPixmapItem>
-#include <QGraphicsEllipseItem>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -39,42 +38,24 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    delete m_ui;
     delete m_scene;
+    delete m_ui;
 }
 
 
 void MainWindow::on_createWorld_clicked()
 {
     m_scene->clear();
-    m_ellipseItems.clear();
     m_ui->stepNumber->setNum(0);
-
 
     m_width = m_ui->widthWorld->value();
     m_height = m_ui->heightWorld->value();
     m_scene->setSceneRect(0, 0, m_width, m_height);
     this->addGrid();
 
-    //изображение с пикселями
-    //QImage image(m_width, m_height, QImage::Format_ARGB32);
-    //image.fill(Qt::white);
-    //m_pixmap = m_scene->addPixmap(QPixmap::fromImage(image));
-
-    //сцена с кругами
-    /*
-    for (qsizetype x = 0; x < m_width; ++x)
-    {
-        for (qsizetype y = 0; y < m_height; ++y)
-        {
-            auto item = new QGraphicsEllipseItem(x, y, 1, 1);
-            item->setPen(QPen(QBrush(), 0));
-            m_scene->addItem(item);
-            m_ellipseItems.push_back(item);
-        }
-    }
-    */
-
+    QImage image(m_width, m_height, QImage::Format_ARGB32);
+    image.fill(Qt::white);
+    m_pixmapItem = m_scene->addPixmap(QPixmap::fromImage(image));
 
     setEnabledWorldChangeInterface(true);
     m_ui->start->setEnabled(true);
@@ -86,7 +67,7 @@ void MainWindow::on_start_clicked()
     {
         setEnabledWorldChangeInterface(false);
         m_ui->start->setText("Пауза");
-        m_timer.start(m_timerDelay);
+        m_timer.start(k_timerDelay);
     }
     else
     {
@@ -98,30 +79,19 @@ void MainWindow::on_start_clicked()
 
 void MainWindow::run()
 {
-    //2k x 2k = 130мс - //изображение с пикселями
-    /*
-    QImage image(m_width, m_height, QImage::Format_ARGB32);
+    //изображение с пикселями
+    //2k x 2k = 130мс, без генерации цвета на каждом шаге = 40мс
+    QImage image = m_pixmapItem->pixmap().toImage();
     QRgb* data = reinterpret_cast<QRgb*>(image.bits());
-    for (qsizetype x = 0; x < m_width; ++x)
-        for (qsizetype y = 0; y < m_height; ++y)
-            data[x * m_height + y] = qRgb(
+    for (qsizetype y = 0; y < m_height; ++y)
+        for (qsizetype x = 0; x < m_width; ++x)
+        {
+            data[y * m_width + x] = qRgb(
                         QRandomGenerator::global()->bounded(256),
                         QRandomGenerator::global()->bounded(256),
                         QRandomGenerator::global()->bounded(256));
-    m_pixmap->setPixmap(QPixmap::fromImage(image));
-    */
-
-
-    //сцена с кругами 1k x 1k = 3000ms
-    for (auto& item : m_ellipseItems)
-    {
-        item->setBrush(QColor(
-                           QRandomGenerator::global()->bounded(256),
-                           QRandomGenerator::global()->bounded(256),
-                           QRandomGenerator::global()->bounded(256)));
-    }
-
-
+        }
+    m_pixmapItem->setPixmap(QPixmap::fromImage(image));
 
     //выводим информацию о номере шага, время итерации
     m_ui->stepNumber->setNum(m_ui->stepNumber->text().toInt() + 1);
@@ -143,8 +113,8 @@ void MainWindow::addGrid()
         gridPath.moveTo(0, y);
         gridPath.lineTo(m_width, y);
     }
-    m_grid = m_scene->addPath(gridPath, QPen(Qt::black, 0.02));
-    m_grid->setZValue(static_cast<int>(LayerLevel::Grid));
+    m_gridItem = m_scene->addPath(gridPath, QPen(Qt::black, 0.02));
+    m_gridItem->setZValue(static_cast<int>(LayerLevel::Grid));
 }
 
 void MainWindow::setEnabledWorldChangeInterface(bool x)

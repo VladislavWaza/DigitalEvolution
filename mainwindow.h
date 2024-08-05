@@ -5,8 +5,6 @@
 #include <QTimer>
 #include <QGraphicsScene>
 
-#include <vector>
-
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -39,14 +37,13 @@ private:
     Ui::MainWindow *m_ui;
     QGraphicsScene *m_scene  = nullptr;
 
-    QGraphicsPathItem *m_grid = nullptr;
-    QGraphicsPixmapItem *m_pixmap  = nullptr;
-    std::vector<QGraphicsEllipseItem*> m_ellipseItems;
+    QGraphicsPathItem *m_gridItem = nullptr;
+    QGraphicsPixmapItem *m_pixmapItem  = nullptr;
 
     QTimer m_timer;
     int m_ms = 0;
     qsizetype m_width = 0;
     qsizetype m_height = 0;
-    qsizetype m_timerDelay = 20;
+    const qsizetype k_timerDelay = 20;
 };
 #endif // MAINWINDOW_H
