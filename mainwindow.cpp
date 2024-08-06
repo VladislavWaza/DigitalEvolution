@@ -8,7 +8,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , m_ui(new Ui::MainWindow)
+    , m_ui(std::make_unique<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
 
@@ -24,8 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->graphicsView->setRenderHint(QPainter::SmoothPixmapTransform);
 
     //создаем сцену
-    m_scene = new QGraphicsScene(this);
-    m_ui->graphicsView->setScene(m_scene);
+    m_scene = std::make_unique<QGraphicsScene>(this);
+    m_ui->graphicsView->setScene(m_scene.get());
 
     //параметры мира
     m_ui->heightWorld->setMaximum(10000);
@@ -38,8 +38,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    delete m_scene;
-    delete m_ui;
 }
 
 

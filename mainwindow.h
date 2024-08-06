@@ -5,6 +5,8 @@
 #include <QTimer>
 #include <QGraphicsScene>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -34,8 +36,8 @@ private:
 
     void setEnabledWorldChangeInterface(bool x);
 
-    Ui::MainWindow *m_ui;
-    QGraphicsScene *m_scene  = nullptr;
+    std::unique_ptr<Ui::MainWindow> m_ui;
+    std::unique_ptr<QGraphicsScene> m_scene;
 
     QGraphicsPathItem *m_gridItem = nullptr;
     QGraphicsPixmapItem *m_pixmapItem  = nullptr;
