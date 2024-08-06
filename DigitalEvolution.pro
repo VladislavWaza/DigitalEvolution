@@ -11,11 +11,13 @@ CONFIG += c++17
 SOURCES += \
     graphicsviewzoom.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    worldsimulation.cpp
 
 HEADERS += \
     graphicsviewzoom.h \
-    mainwindow.h
+    mainwindow.h \
+    worldsimulation.h
 
 FORMS += \
     mainwindow.ui

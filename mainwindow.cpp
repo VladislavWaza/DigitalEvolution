@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 #include "graphicsviewzoom.h"
 
-#include <QRandomGenerator>
 #include <QTime>
 #include <QGraphicsPixmapItem>
 
@@ -46,14 +45,11 @@ void MainWindow::on_createWorld_clicked()
     m_scene->clear();
     m_ui->stepNumber->setNum(0);
 
-    m_width = m_ui->widthWorld->value();
-    m_height = m_ui->heightWorld->value();
-    m_scene->setSceneRect(0, 0, m_width, m_height);
+    m_world = std::make_unique<WorldSimulation>(m_ui->widthWorld->value(), m_ui->heightWorld->value());
+    m_scene->setSceneRect(0, 0, m_world->imageWidth(), m_world->imageHeight());
     this->addGrid();
 
-    QImage image(m_width, m_height, QImage::Format_ARGB32);
-    image.fill(Qt::white);
-    m_pixmapItem = m_scene->addPixmap(QPixmap::fromImage(image));
+    m_pixmapItem = m_scene->addPixmap(QPixmap::fromImage(m_world->getImage()));
 
     setEnabledWorldChangeInterface(true);
     m_ui->start->setEnabled(true);
@@ -77,21 +73,8 @@ void MainWindow::on_start_clicked()
 
 void MainWindow::run()
 {
-    //изображение с пикселями
-    //2k x 2k = 130мс, без генерации цвета на каждом шаге = 40мс
-    QImage image = m_pixmapItem->pixmap().toImage();
-    QRgb* data = reinterpret_cast<QRgb*>(image.bits());
-    for (qsizetype y = 0; y < m_height; ++y)
-        for (qsizetype x = 0; x < m_width; ++x)
-        {
-            data[y * m_width + x] = qRgb(
-                        QRandomGenerator::global()->bounded(256),
-                        QRandomGenerator::global()->bounded(256),
-                        QRandomGenerator::global()->bounded(256));
-        }
-    m_pixmapItem->setPixmap(QPixmap::fromImage(image));
+    m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
 
-    //выводим информацию о номере шага, время итерации
     m_ui->stepNumber->setNum(m_ui->stepNumber->text().toInt() + 1);
     m_ui->time->setNum(QTime::currentTime().msecsSinceStartOfDay() - m_ms);
     m_ms = QTime::currentTime().msecsSinceStartOfDay();
@@ -100,16 +83,19 @@ void MainWindow::run()
 void MainWindow::addGrid()
 {
     QPainterPath gridPath;
-    for (qsizetype x = 0; x <= m_width; ++x)
+    const size_t w = m_world->imageWidth();
+    const size_t h = m_world->imageHeight();
+    const size_t step = m_world->cellSize();
+    for (size_t x = 0; x <= w; x+=step)
     {
         gridPath.moveTo(x, 0);
-        gridPath.lineTo(x, m_height);
+        gridPath.lineTo(x, h);
 
     }
-    for (qsizetype y = 0; y <= m_height; ++y)
+    for (size_t y = 0; y <= h; y+=step)
     {
         gridPath.moveTo(0, y);
-        gridPath.lineTo(m_width, y);
+        gridPath.lineTo(w, y);
     }
     m_gridItem = m_scene->addPath(gridPath, QPen(Qt::black, 0.02));
     m_gridItem->setZValue(static_cast<int>(LayerLevel::Grid));
