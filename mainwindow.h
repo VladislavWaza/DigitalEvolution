@@ -23,17 +23,15 @@ public:
 
     enum class LayerLevel {Cell = 0, Grid = 1};
 private slots:
-    //слот нажатия на кнопку создания мира
     void on_createWorld_clicked();
 
-    //слот нажатия на кнопку старт/пауза
     void on_start_clicked();
 
-    //слот запуска геномов, срабатывает по таймеру
     void run();
 
+    void on_addCells_clicked();
+
 private:
-    //добавляет сетку на сцену
     void addGrid();
 
     void setEnabledWorldChangeInterface(bool x);

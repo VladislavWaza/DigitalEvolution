@@ -32,6 +32,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->heightWorld->setMinimum(50);
     m_ui->widthWorld->setMinimum(50);
 
+    m_ui->cellsNumberToAdd->setMinimum(1);
+    m_ui->cellsNumberToAdd->setMaximum(10000000);
+
     m_ms = 0;
 }
 
@@ -73,9 +76,11 @@ void MainWindow::on_start_clicked()
 
 void MainWindow::run()
 {
+    m_world->run();
     m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
 
     m_ui->stepNumber->setNum(m_ui->stepNumber->text().toInt() + 1);
+    m_ui->cellsNumber->setNum(static_cast<int>(m_world->cellsCount()));
     m_ui->time->setNum(QTime::currentTime().msecsSinceStartOfDay() - m_ms);
     m_ms = QTime::currentTime().msecsSinceStartOfDay();
 }
@@ -108,4 +113,14 @@ void MainWindow::setEnabledWorldChangeInterface(bool x)
     m_ui->widthWorld->setEnabled(x);
     m_ui->label->setEnabled(x);
     m_ui->label_2->setEnabled(x);
+    m_ui->addCells->setEnabled(x);
+    m_ui->cellsNumberToAdd->setEnabled(x);
 }
+
+void MainWindow::on_addCells_clicked()
+{
+    m_world->addCells(m_ui->cellsNumberToAdd->value());
+    m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
+    m_ui->cellsNumber->setNum(static_cast<int>(m_world->cellsCount()));
+}
+
