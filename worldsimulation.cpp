@@ -34,9 +34,9 @@ QImage WorldSimulation::getImage()
 
 void WorldSimulation::run()
 {
+    /*
     for (auto& cell: m_cellOrder)
     {
-        /*
         size_t i = cell.y * m_width + cell.x + 1;
         if (i < m_cells.size() && !m_cells[i])
         {
@@ -44,8 +44,8 @@ void WorldSimulation::run()
             m_cells[i] = m_cells[i - 1];
             m_cells[i - 1] = nullptr;
         }
-        */
     }
+    */
 }
 
 void WorldSimulation::addCells(size_t count)
@@ -70,15 +70,16 @@ void WorldSimulation::addCells(size_t count)
     }
 }
 
-//надо оптимизировать
 std::vector<QPoint> WorldSimulation::sample(std::vector<QPoint> &seq, size_t count)
 {
+    if (count > seq.size())
+        return seq;
+
     std::vector<QPoint> result;
-    for (size_t i = 0; i < count; ++i)
-    {
-        size_t randVal = QRandomGenerator::global()->bounded(seq.size() - i);
-        result.push_back(seq[randVal]);
-        std::iter_swap(seq.begin() + randVal, seq.end()-i-1);
-    }
+    result.reserve(count);
+
+    std::shuffle(seq.begin(), seq.end(), std::mt19937(std::random_device{}()));
+    result.insert(result.end(), seq.begin(), seq.begin() + count);
+
     return result;
 }
