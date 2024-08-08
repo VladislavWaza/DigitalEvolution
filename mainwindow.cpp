@@ -35,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->cellsNumberToAdd->setMinimum(1);
     m_ui->cellsNumberToAdd->setMaximum(10000000);
 
+    m_ui->detailLevel->addItem("1 пиксель");
+    m_ui->detailLevel->addItem("9 пикселей");
+
     m_ms = 0;
 }
 
@@ -48,7 +51,13 @@ void MainWindow::on_createWorld_clicked()
     m_scene->clear();
     m_ui->stepNumber->setNum(0);
 
-    m_world = std::make_unique<WorldSimulation>(m_ui->widthWorld->value(), m_ui->heightWorld->value());
+    WorldSimulation::CellsDetailLevel cellsDetailLevel = WorldSimulation::CellsDetailLevel::OnePixel;
+    if (m_ui->detailLevel->currentText() == "1 пиксель")
+        cellsDetailLevel = WorldSimulation::CellsDetailLevel::OnePixel;
+    else if (m_ui->detailLevel->currentText() == "9 пикселей")
+        cellsDetailLevel = WorldSimulation::CellsDetailLevel::Square3x3;
+
+    m_world = std::make_unique<WorldSimulation>(m_ui->widthWorld->value(), m_ui->heightWorld->value(), cellsDetailLevel);
     m_scene->setSceneRect(0, 0, m_world->imageWidth(), m_world->imageHeight());
     this->addGrid();
 
@@ -76,8 +85,12 @@ void MainWindow::on_start_clicked()
 
 void MainWindow::run()
 {
+    auto ms = QTime::currentTime().msecsSinceStartOfDay();
     m_world->run();
+    qDebug() << "run(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
+    ms = QTime::currentTime().msecsSinceStartOfDay();
     m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
+    qDebug() << "setPixmap(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
 
     m_ui->stepNumber->setNum(m_ui->stepNumber->text().toInt() + 1);
     m_ui->cellsNumber->setNum(static_cast<int>(m_world->cellsCount()));
@@ -119,7 +132,9 @@ void MainWindow::setEnabledWorldChangeInterface(bool x)
 
 void MainWindow::on_addCells_clicked()
 {
+    auto ms = QTime::currentTime().msecsSinceStartOfDay();
     m_world->addCells(m_ui->cellsNumberToAdd->value());
+    qDebug() << "addCells(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
     m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
     m_ui->cellsNumber->setNum(static_cast<int>(m_world->cellsCount()));
 }

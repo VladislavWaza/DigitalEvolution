@@ -20,28 +20,37 @@ WorldSimulation::WorldSimulation(size_t worldWidth, size_t worldHidth, CellsDeta
 
 QImage WorldSimulation::getImage()
 {
-    /*
     QRgb* data = reinterpret_cast<QRgb*>(m_image.bits());
+    const size_t imgWidth = m_image.width();
     for (size_t y = 0; y < m_height; ++y)
-        for (size_t x = 0; x < m_width; ++x)
     {
-        if (m_cells[y * m_width + x])
-            data[y * m_width + x] = m_cells[y * m_width + x]->color;
-        else
-            data[y * m_width + x] = qRgb(255, 255, 255);
+        for (size_t x = 0; x < m_width; ++x)
+        {
+            const size_t cellIndex = y * m_width + x;
+            QRgb color = m_cells[cellIndex] ? m_cells[cellIndex]->color : 0xffffffff;
+
+            if (m_detailLevel == CellsDetailLevel::OnePixel)
+                data[y * m_image.width() + x] = color;
+            else if (m_detailLevel == CellsDetailLevel::Square3x3)
+            {
+                const size_t factor = static_cast<size_t>(CellsDetailLevel::Square3x3);
+                data[(y * factor + 0) * imgWidth + (x * factor + 1)] = color;
+                data[(y * factor + 1) * imgWidth + (x * factor + 0)] = color;
+                data[(y * factor + 1) * imgWidth + (x * factor + 1)] = color;
+                data[(y * factor + 1) * imgWidth + (x * factor + 2)] = color;
+                data[(y * factor + 2) * imgWidth + (x * factor + 1)] = color;
+            }
+        }
     }
-    */
     return m_image;
 }
 
 void WorldSimulation::run()
 {
-    /*
     for (auto& cell: m_cellOrder)
     {
         cell->act(*this);
     }
-    */
 }
 
 void WorldSimulation::addCells(size_t count)
@@ -61,7 +70,7 @@ void WorldSimulation::addCells(size_t count)
     {
         int x = emptySpaces[i].x();
         int y = emptySpaces[i].y();
-        m_cellOrder.push_back(std::make_unique<Cell>(x, y));
+        m_cellOrder.push_back(std::make_unique<Leaf>(x, y));
         m_cells[y * m_width + x] = m_cellOrder.back().get();
     }
 }
