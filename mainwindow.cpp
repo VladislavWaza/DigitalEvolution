@@ -92,7 +92,7 @@ void MainWindow::run()
     m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
     qDebug() << "setPixmap(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
 
-    m_ui->stepNumber->setNum(m_ui->stepNumber->text().toInt() + 1);
+    m_ui->stepNumber->setText(QString::number(m_world->stepsNumber()));
     m_ui->cellsNumber->setNum(static_cast<int>(m_world->cellsCount()));
     m_ui->time->setNum(QTime::currentTime().msecsSinceStartOfDay() - m_ms);
     m_ms = QTime::currentTime().msecsSinceStartOfDay();

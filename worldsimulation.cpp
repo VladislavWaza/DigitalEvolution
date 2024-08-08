@@ -27,7 +27,7 @@ QImage WorldSimulation::getImage()
         for (size_t x = 0; x < m_width; ++x)
         {
             const size_t cellIndex = y * m_width + x;
-            QRgb color = m_cells[cellIndex] ? m_cells[cellIndex]->color : 0xffffffff;
+            QRgb color = m_cells[cellIndex] ? m_cells[cellIndex]->color() : 0xffffffff;
 
             if (m_detailLevel == CellsDetailLevel::OnePixel)
                 data[y * m_image.width() + x] = color;
@@ -47,9 +47,10 @@ QImage WorldSimulation::getImage()
 
 void WorldSimulation::run()
 {
+    ++m_stepsNumber;
     for (auto& cell: m_cellOrder)
     {
-        cell->act(*this);
+        cell->doAct(*this);
     }
 }
 

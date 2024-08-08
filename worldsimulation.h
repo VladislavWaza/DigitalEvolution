@@ -21,6 +21,7 @@ public:
 
     size_t worldWidth() const {return m_width;}
     size_t worldHeight() const {return m_height;}
+    size_t stepsNumber() const {return m_stepsNumber;}
 
     size_t imageWidth() const {return m_width * static_cast<size_t>(m_detailLevel);}
     size_t imageHeight() const {return m_height * static_cast<size_t>(m_detailLevel);}
@@ -35,9 +36,9 @@ public:
 private:
     static std::vector<QPoint> sample(std::vector<QPoint> &seq, size_t count);
 
-
     size_t m_width = 0;
     size_t m_height = 0;
+    size_t m_stepsNumber = 0;
 
     CellsDetailLevel m_detailLevel;
     std::vector<Region> m_regions;
