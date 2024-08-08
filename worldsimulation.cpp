@@ -1,5 +1,7 @@
 #include "worldsimulation.h"
 
+#include <random>
+
 WorldSimulation::WorldSimulation(size_t worldWidth, size_t worldHidth, CellsDetailLevel detailLevel)
     : m_width(worldWidth),
       m_height(worldHidth),
@@ -24,7 +26,7 @@ QImage WorldSimulation::getImage()
         for (size_t x = 0; x < m_width; ++x)
     {
         if (m_cells[y * m_width + x])
-            data[y * m_width + x] = qRgb(100, 250, 100);
+            data[y * m_width + x] = m_cells[y * m_width + x]->color;
         else
             data[y * m_width + x] = qRgb(255, 255, 255);
     }
@@ -37,13 +39,7 @@ void WorldSimulation::run()
     /*
     for (auto& cell: m_cellOrder)
     {
-        size_t i = cell.y * m_width + cell.x + 1;
-        if (i < m_cells.size() && !m_cells[i])
-        {
-            ++cell.x;
-            m_cells[i] = m_cells[i - 1];
-            m_cells[i - 1] = nullptr;
-        }
+        cell->act(*this);
     }
     */
 }
@@ -65,8 +61,8 @@ void WorldSimulation::addCells(size_t count)
     {
         int x = emptySpaces[i].x();
         int y = emptySpaces[i].y();
-        m_cellOrder.push_back(Cell(x, y));
-        m_cells[y * m_width + x] = &m_cellOrder.back();
+        m_cellOrder.push_back(std::make_unique<Cell>(x, y));
+        m_cells[y * m_width + x] = m_cellOrder.back().get();
     }
 }
 

@@ -1,21 +1,15 @@
 #ifndef WORLDSIMULATION_H
 #define WORLDSIMULATION_H
 
+#include "cell.h"
+
 #include <QImage>
-#include <QRandomGenerator>
 
 #include <vector>
 #include <list>
 
 struct Region
 {
-};
-
-struct Cell
-{
-    size_t x = 0;
-    size_t y = 0;
-    Cell(size_t x, size_t y) : x(x), y(y) {}
 };
 
 class WorldSimulation
@@ -47,7 +41,7 @@ private:
 
     CellsDetailLevel m_detailLevel;
     std::vector<Region> m_regions;
-    std::list<Cell> m_cellOrder;
+    std::list<std::unique_ptr<Cell>> m_cellOrder;
     std::vector<Cell*> m_cells;
 
     QImage m_image;
