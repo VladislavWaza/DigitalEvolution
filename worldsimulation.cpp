@@ -40,6 +40,23 @@ QImage WorldSimulation::getImage()
                 data[(y * factor + 1) * imgWidth + (x * factor + 2)] = color;
                 data[(y * factor + 2) * imgWidth + (x * factor + 1)] = color;
             }
+            else if (m_detailLevel == CellsDetailLevel::Square5x5)
+            {
+                const size_t factor = static_cast<size_t>(CellsDetailLevel::Square5x5);
+                data[(y * factor + 0) * imgWidth + (x * factor + 2)] = color;
+                data[(y * factor + 1) * imgWidth + (x * factor + 1)] = color;
+                data[(y * factor + 1) * imgWidth + (x * factor + 2)] = color;
+                data[(y * factor + 1) * imgWidth + (x * factor + 3)] = color;
+                data[(y * factor + 2) * imgWidth + (x * factor + 0)] = color;
+                data[(y * factor + 2) * imgWidth + (x * factor + 1)] = color;
+                data[(y * factor + 2) * imgWidth + (x * factor + 2)] = color;
+                data[(y * factor + 2) * imgWidth + (x * factor + 3)] = color;
+                data[(y * factor + 2) * imgWidth + (x * factor + 4)] = color;
+                data[(y * factor + 3) * imgWidth + (x * factor + 1)] = color;
+                data[(y * factor + 3) * imgWidth + (x * factor + 2)] = color;
+                data[(y * factor + 3) * imgWidth + (x * factor + 3)] = color;
+                data[(y * factor + 4) * imgWidth + (x * factor + 2)] = color;
+            }
         }
     }
     return m_image;
