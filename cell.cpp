@@ -37,6 +37,7 @@ void Cell::doAct(WorldSimulation &world)
 
     // Передаем энергию
     transportEnergy(world);
+    // if (m_isDead) return;
 }
 
 void Cell::addEnergyToBuffer(size_t energy, size_t curStepNumber)
@@ -60,16 +61,8 @@ void Cell::transportEnergy(WorldSimulation &world)
     if (m_transportPolicy == TransportPolicy::None)
         throw std::runtime_error("unidentified TransportPolicy");
 
-    // Есть куда передавать энергию?
-    int energyToCount = 0;
-    for (int i = static_cast<int>(Direction::Left); i <= static_cast<int>(Direction::Down); ++i)
-    {
-        if (m_energyTo[i] != 0)
-            energyToCount += 1;
-    }
-
     // Если передвать некуда и родителя нет
-    if (energyToCount == 0 && m_parentDirection == Direction::None)
+    if (m_energyToSum == 0 && m_parentDirection == Direction::None)
     {
         //Если клетка транспортая или клетка-источник, то умереть так как смысл жизни потерян
         if (m_transportPolicy == TransportPolicy::Transporter || m_transportPolicy == TransportPolicy::Source)
@@ -79,17 +72,17 @@ void Cell::transportEnergy(WorldSimulation &world)
         }
     }
     // Eсли передвать некуда и родитель есть и это не потребитель
-    else if (energyToCount == 0 && m_parentDirection != Direction::None && m_transportPolicy != TransportPolicy::Сonsumer)
+    else if (m_energyToSum == 0 && m_parentDirection != Direction::None && m_transportPolicy != TransportPolicy::Сonsumer)
     {
         // передем энергию родителю
         m_energyTo[static_cast<int>(m_parentDirection)] = 1;
-        ++energyToCount;
+        ++m_energyToSum;
     }
 
     // Если есть куда передавать энергию, то передаем
-    if (energyToCount != 0)
+    if (m_energyToSum != 0)
     {
-        int energyToTransfer = m_energy / energyToCount * DigitalEvolution::TRANSPORT_ENERGY_PROPORTION;
+        int energyToTransfer = m_energy / m_energyToSum * DigitalEvolution::TRANSPORT_ENERGY_PROPORTION;
         if (energyToTransfer < 0)
             throw std::runtime_error("negative energyToTransfer");
         m_energy = 0;

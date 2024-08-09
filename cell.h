@@ -106,6 +106,7 @@ protected:
     QRgb m_color = 0xffaaaaaa;
 
     uint8_t m_energyTo[4] = {0, 0, 0, 0};
+    int m_energyToSum = 0;
     Direction m_parentDirection = Direction::None;
     TransportPolicy m_transportPolicy = TransportPolicy::None;
 };
