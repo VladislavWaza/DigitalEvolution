@@ -19,10 +19,44 @@ class WorldSimulation;
  * - если энергия кладется в буфер и номер текущей итарации больше итерации обновления буфера,
  *   то энергия также переходит из буфера непосредсвтенно в клетку
  *
+ * Транспортировка энергии описывается в
+ * m_energyTo (m_energyTo[Direction] == 1 => надо передать энергию по направлению Direction)
+ * и m_parentDirection и TransportPolicy:
+ * - Все клетки обладают алгоритмом транспортировки
+ * - Есть три типа клеток
+ *    1. те кто дают (Листья и другие добытчики энергии)
+ *    2. те кто передают (Стебли)
+ *    3. те кто получают (Ростки)
+ *
+ * - Росток создает новую клетку:
+ *    1. Устанавливает их родителем себя
+ *    2. Если тип новой клетки подразумевает получение энергии, то росток
+ *       устанавливает себе это в m_energyTo
+ *    3. Если тип новой клетки подразумевает генерацию энергии, то росток
+ *       устанавливает клетке это в m_energyTo
+ * - Смерть клетки:
+ *    1. Обратиться к всем соседям и у детей отменить свое родительство
+ *    2. Обратиться к всем соседям и сообщить им, что энергию больше передвать не надо
+ *    3. Умереть
+ * - Перенаправление потоков энергии:
+ *    1. Если передавать энергию некуда, то передавать родителю и отменить передачу от него
+ *    2. Если родителя нет, то помереть
+ *    ? когда происходит перенаправление? сразу по цепочке или только в свою итерацию
+ * - Опициональное подключение времени жизни:
+ *    1. При рождении клетка проверяет наличие клеток рядом кроме родителя
+ *    2. При смерти все как обычно
+ *    3. Если есть кому передвать энергию, то передает
+ *    4. Если есть от кого получать энергию, то просим передать
+ *    ? Если подключающаяся клетка - стебель и целевая тоже , то двухстороняя передача
+ *
  */
 class Cell
 {
 public:
+
+    enum class Direction : int {None = -1, Left = 0, Up = 1, Rigth = 2, Down = 3};
+    enum class TransportPolicy {None, Сonsumer, Source, Transporter};
+
     Cell(size_t x, size_t y, size_t energy = 0);
     virtual ~Cell() = default;
 
@@ -42,6 +76,10 @@ protected:
     size_t m_stepEnergyBufferUpdate = 0;
 
     QRgb m_color = 0xffaaaaaa;
+
+    uint8_t m_energyTo[4] = {0, 0, 0, 0};
+    Direction m_parentDirection = Direction::None;
+    TransportPolicy m_transportPolicy = TransportPolicy::None;
 };
 
 class Leaf : public Cell
@@ -49,6 +87,16 @@ class Leaf : public Cell
 public:
     Leaf(size_t x, size_t y, size_t energy = 0);
     ~Leaf() = default;
+
+protected:
+    void act(WorldSimulation& world) override;
+};
+
+class Transport : public Cell
+{
+public:
+    Transport(size_t x, size_t y, size_t energy = 0);
+    ~Transport() = default;
 
 protected:
     void act(WorldSimulation& world) override;

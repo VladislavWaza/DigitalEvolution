@@ -41,6 +41,7 @@ Leaf::Leaf(size_t x, size_t y, size_t energy)
     : Cell(x, y, energy)
 {
     m_color = 0xff32CD32;
+    m_transportPolicy = TransportPolicy::Source;
 }
 
 void Leaf::act(WorldSimulation &world)
@@ -51,10 +52,23 @@ Sprout::Sprout(size_t x, size_t y, size_t energy)
     : Cell(x, y, energy)
 {
     m_color = 0xffFFAACC;
+    m_transportPolicy = TransportPolicy::Сonsumer;
 }
 
 void Sprout::act(WorldSimulation &world)
 {
+}
+
+Transport::Transport(size_t x, size_t y, size_t energy)
+    : Cell(x, y, energy)
+{
+    m_color = 0xffb3b3b3;
+    m_transportPolicy = TransportPolicy::Transporter;
+}
+
+void Transport::act(WorldSimulation &world)
+{
+
 }
 
 }
