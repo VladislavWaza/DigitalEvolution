@@ -38,10 +38,10 @@ private:
 
     std::unique_ptr<Ui::MainWindow> m_ui;
     std::unique_ptr<QGraphicsScene> m_scene;
-    std::unique_ptr<WorldSimulation> m_world;
+    std::unique_ptr<DigitalEvolution::WorldSimulation> m_world;
 
     QGraphicsPathItem *m_gridItem = nullptr;
-    QGraphicsPixmapItem *m_pixmapItem  = nullptr;
+    QGraphicsPixmapItem *m_pixmapItem = nullptr;
 
     QTimer m_timer;
     int m_ms = 0;

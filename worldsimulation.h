@@ -8,6 +8,9 @@
 #include <vector>
 #include <list>
 
+namespace DigitalEvolution
+{
+
 struct Region
 {
 };
@@ -47,5 +50,8 @@ private:
 
     QImage m_image;
 };
+
+
+}
 
 #endif // WORLDSIMULATION_H

@@ -1,6 +1,10 @@
 #include "cell.h"
 #include "worldsimulation.h"
 
+
+namespace DigitalEvolution
+{
+
 Cell::Cell(size_t x, size_t y, size_t energy)
     : m_x(x), m_y(y), m_energy(energy)
 {
@@ -51,4 +55,6 @@ Sprout::Sprout(size_t x, size_t y, size_t energy)
 
 void Sprout::act(WorldSimulation &world)
 {
+}
+
 }

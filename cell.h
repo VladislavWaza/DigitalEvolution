@@ -5,6 +5,9 @@
 
 #include <QColor>
 
+namespace DigitalEvolution
+{
+
 class WorldSimulation;
 
 /*
@@ -60,5 +63,7 @@ public:
 protected:
     void act(WorldSimulation& world) override;
 };
+
+}
 
 #endif // CELL_H

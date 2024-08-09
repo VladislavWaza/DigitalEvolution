@@ -5,6 +5,11 @@
 #include <QTime>
 #include <QGraphicsPixmapItem>
 
+
+using DigitalEvolution::Cell;
+using DigitalEvolution::WorldSimulation;
+using DigitalEvolution::Sprout;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_ui(std::make_unique<Ui::MainWindow>())

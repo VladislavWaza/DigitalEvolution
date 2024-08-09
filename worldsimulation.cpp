@@ -2,6 +2,9 @@
 
 #include <random>
 
+namespace DigitalEvolution
+{
+
 WorldSimulation::WorldSimulation(size_t worldWidth, size_t worldHidth, CellsDetailLevel detailLevel)
     : m_width(worldWidth),
       m_height(worldHidth),
@@ -105,4 +108,6 @@ std::vector<QPoint> WorldSimulation::sample(std::vector<QPoint> &seq, size_t cou
     result.insert(result.end(), seq.begin(), seq.begin() + count);
 
     return result;
+}
+
 }
