@@ -47,6 +47,7 @@ public:
     Cell *getCell(int x, int y) { return m_cells[y * m_width + x]; }
     Cell *getCell(const QPoint& point) { return m_cells[point.y() * m_width + point.x()]; }
     void preEraseCell(int x, int y) { m_cells[y * m_width + x] = nullptr; }
+    Cell *insertCellBeforeCur(std::unique_ptr<Cell>&& cell);
 
 private:
     static std::vector<QPoint> sample(std::vector<QPoint> &seq, size_t count);
@@ -58,6 +59,7 @@ private:
     CellsDetailLevel m_detailLevel;
     std::vector<Region> m_regions;
     std::list<std::unique_ptr<Cell>> m_cellOrder;
+    std::list<std::unique_ptr<Cell>>::iterator m_curCell;
     std::vector<Cell*> m_cells;
 
     QImage m_image;

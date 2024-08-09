@@ -71,17 +71,17 @@ QImage WorldSimulation::getImage()
 void WorldSimulation::run()
 {
     ++m_stepsNumber;
-    for (auto it = m_cellOrder.begin(); it != m_cellOrder.end();)
+    for (auto m_curCell = m_cellOrder.begin(); m_curCell != m_cellOrder.end();)
     {
-        auto& cell = *it;
+        auto& cell = *m_curCell;
         cell->doAct(*this);
         if (cell->isDead())
         {
             m_cells[cell->y() * m_width + cell->x()] = nullptr;
-            it = m_cellOrder.erase(it);
+            m_curCell = m_cellOrder.erase(m_curCell);
         }
         else
-            ++it;
+            ++m_curCell;
     }
 }
 
@@ -102,7 +102,7 @@ void WorldSimulation::addCells(size_t count)
     {
         int x = emptySpaces[i].x();
         int y = emptySpaces[i].y();
-        m_cellOrder.push_back(std::make_unique<Sprout>(x, y));
+        m_cellOrder.push_back(std::make_unique<Sprout>(x, y, DigitalEvolution::ENERGY_START));
         m_cells[y * m_width + x] = m_cellOrder.back().get();
     }
 }
@@ -148,6 +148,17 @@ QPoint WorldSimulation::returnPosToWorld(int x, int y) const
     if (y < 0)
         y += m_height;
     return {x, y};
+}
+
+Cell *WorldSimulation::insertCellBeforeCur(std::unique_ptr<Cell> &&cell)
+{
+    if (m_cells[cell->y() * m_width + cell->x()] == nullptr)
+    {
+        auto& newCell = *m_cellOrder.insert(m_curCell, std::move(cell));
+        m_cells[newCell->y() * m_width + newCell->x()] = newCell.get();
+        return newCell.get();
+    }
+    return nullptr;
 }
 
 std::vector<QPoint> WorldSimulation::sample(std::vector<QPoint> &seq, size_t count)
