@@ -42,3 +42,13 @@ Leaf::Leaf(size_t x, size_t y, size_t energy)
 void Leaf::act(WorldSimulation &world)
 {
 }
+
+Sprout::Sprout(size_t x, size_t y, size_t energy)
+    : Cell(x, y, energy)
+{
+    m_color = 0xffFFAACC;
+}
+
+void Sprout::act(WorldSimulation &world)
+{
+}

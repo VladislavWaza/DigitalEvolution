@@ -88,7 +88,7 @@ void WorldSimulation::addCells(size_t count)
     {
         int x = emptySpaces[i].x();
         int y = emptySpaces[i].y();
-        m_cellOrder.push_back(std::make_unique<Leaf>(x, y));
+        m_cellOrder.push_back(std::make_unique<Sprout>(x, y));
         m_cells[y * m_width + x] = m_cellOrder.back().get();
     }
 }

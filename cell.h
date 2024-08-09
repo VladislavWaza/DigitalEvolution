@@ -51,4 +51,14 @@ protected:
     void act(WorldSimulation& world) override;
 };
 
+class Sprout : public Cell
+{
+public:
+    Sprout(size_t x, size_t y, size_t energy = 0);
+    ~Sprout() = default;
+
+protected:
+    void act(WorldSimulation& world) override;
+};
+
 #endif // CELL_H
