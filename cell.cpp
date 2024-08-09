@@ -1,7 +1,6 @@
 #include "cell.h"
 #include "worldsimulation.h"
 
-
 namespace DigitalEvolution
 {
 
@@ -28,9 +27,15 @@ void Cell::doAct(WorldSimulation &world)
 
     // Проверяем живы ли
     if (m_energy < 0)
-        die();
+    {
+        die(world);
+        return;
+    }
 
+    // Передаем энергию
     transportEnergy(world);
+    if (m_isDead)
+        return;
 }
 
 void Cell::addEnergyToBuffer(size_t energy, size_t curStepNumber)
@@ -67,7 +72,10 @@ void Cell::transportEnergy(WorldSimulation &world)
     {
         //Если клетка транспортая или клетка-источник, то умереть так как смысл жизни потерян
         if (m_transportPolicy == TransportPolicy::Transporter || m_transportPolicy == TransportPolicy::Source)
-            die();
+        {
+            die(world);
+            return;
+        }
     }
     // Eсли передвать некуда и родитель есть и это не потребитель
     else if (energyToCount == 0 && m_parentDirection != Direction::None && m_transportPolicy != TransportPolicy::Сonsumer)
@@ -114,6 +122,37 @@ void Cell::transportEnergy(WorldSimulation &world)
                 cell->addEnergyToBuffer(energyToTransfer, world.stepsNumber());
         }
     }
+}
+
+void Cell::die(WorldSimulation &world)
+{
+    Cell* cell = nullptr;
+    cell = world.getCell(world.getLeftPos(m_x, m_y));
+    if (cell)
+        cell->yourNeighborDied(Direction::Right);
+
+    cell = world.getCell(world.getRightPos(m_x, m_y));
+    if (cell)
+        cell->yourNeighborDied(Direction::Left);
+
+    cell = world.getCell(world.getUpPos(m_x, m_y));
+    if (cell)
+        cell->yourNeighborDied(Direction::Down);
+
+    cell = world.getCell(world.getDownPos(m_x, m_y));
+    if (cell)
+        cell->yourNeighborDied(Direction::Up);
+
+    m_isDead = true;
+}
+
+void Cell::yourNeighborDied(Direction neighborDirection)
+{
+    if (neighborDirection == Direction::None)
+        throw std::runtime_error("unidentified neighborDirection");
+    if (m_parentDirection == neighborDirection)
+        m_parentDirection = Direction::None;
+    m_energyTo[static_cast<int>(neighborDirection)] = 0;
 }
 
 /******************************************************************************/

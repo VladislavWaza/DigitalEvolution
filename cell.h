@@ -75,14 +75,18 @@ public:
     Cell(size_t x, size_t y, size_t energy = 0);
     virtual ~Cell() = default;
 
+    bool isDead() const {return m_isDead;}
     QRgb color() const {return m_color;}
+    size_t x() const {return m_x;}
+    size_t y() const {return m_y;}
 
     void doAct(WorldSimulation& world);
 
 protected:
     void addEnergyToBuffer(size_t energy, size_t curStepNumber);
     void transportEnergy(WorldSimulation& world);
-    void die();
+    void die(WorldSimulation &world);
+    void yourNeighborDied(Direction neighborDirection);
     virtual void act(WorldSimulation& world) = 0;
 
     size_t m_x = 0;
@@ -91,6 +95,7 @@ protected:
     int m_energy = 0;
     int m_energyBuffer = 0;
     size_t m_stepEnergyBufferUpdate = 0;
+    bool m_isDead = false;
 
     int m_energyNeed = 0;
     QRgb m_color = 0xffaaaaaa;

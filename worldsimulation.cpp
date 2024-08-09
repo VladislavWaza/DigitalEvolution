@@ -71,9 +71,17 @@ QImage WorldSimulation::getImage()
 void WorldSimulation::run()
 {
     ++m_stepsNumber;
-    for (auto& cell: m_cellOrder)
+    for (auto it = m_cellOrder.begin(); it != m_cellOrder.end();)
     {
+        auto& cell = *it;
         cell->doAct(*this);
+        if (cell->isDead())
+        {
+            m_cells[cell->y() * m_width + cell->x()] = nullptr;
+            it = m_cellOrder.erase(it);
+        }
+        else
+            ++it;
     }
 }
 
