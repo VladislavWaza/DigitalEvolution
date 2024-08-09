@@ -71,7 +71,7 @@ QImage WorldSimulation::getImage()
 void WorldSimulation::run()
 {
     ++m_stepsNumber;
-    for (auto m_curCell = m_cellOrder.begin(); m_curCell != m_cellOrder.end();)
+    for (m_curCell = m_cellOrder.begin(); m_curCell != m_cellOrder.end();)
     {
         auto& cell = *m_curCell;
         cell->doAct(*this);
@@ -152,7 +152,7 @@ QPoint WorldSimulation::returnPosToWorld(int x, int y) const
 
 Cell *WorldSimulation::insertCellBeforeCur(std::unique_ptr<Cell> &&cell)
 {
-    if (m_cells[cell->y() * m_width + cell->x()] == nullptr)
+    if (cell && m_cells[cell->y() * m_width + cell->x()] == nullptr)
     {
         auto& newCell = *m_cellOrder.insert(m_curCell, std::move(cell));
         m_cells[newCell->y() * m_width + newCell->x()] = newCell.get();
