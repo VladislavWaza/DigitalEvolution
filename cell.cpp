@@ -11,6 +11,9 @@ Cell::Cell(size_t x, size_t y, size_t energy)
 
 void Cell::doAct(WorldSimulation &world)
 {
+    if (m_isDead)
+        return;
+
     // Обновляем буфер энергии
     if (world.stepsNumber() > m_stepEnergyBufferUpdate)
     {
@@ -34,8 +37,6 @@ void Cell::doAct(WorldSimulation &world)
 
     // Передаем энергию
     transportEnergy(world);
-    if (m_isDead)
-        return;
 }
 
 void Cell::addEnergyToBuffer(size_t energy, size_t curStepNumber)
@@ -88,7 +89,7 @@ void Cell::transportEnergy(WorldSimulation &world)
     // Если есть куда передавать энергию, то передаем
     if (energyToCount != 0)
     {
-        int energyToTransfer = m_energy / energyToCount * TRANSPORT_ENERGY_PROPORTION;
+        int energyToTransfer = m_energy / energyToCount * DigitalEvolution::TRANSPORT_ENERGY_PROPORTION;
         if (energyToTransfer < 0)
             throw std::runtime_error("negative energyToTransfer");
         m_energy = 0;
@@ -144,6 +145,7 @@ void Cell::die(WorldSimulation &world)
         cell->yourNeighborDied(Direction::Up);
 
     m_isDead = true;
+    world.preEraseCell(m_x, m_y);
 }
 
 void Cell::yourNeighborDied(Direction neighborDirection)
@@ -162,7 +164,7 @@ Leaf::Leaf(size_t x, size_t y, size_t energy)
 {
     m_color = 0xff32CD32;
     m_transportPolicy = TransportPolicy::Source;
-    m_energyNeed = ENERGY_NEED;
+    m_energyNeed = DigitalEvolution::ENERGY_NEED;
 }
 
 void Leaf::act(WorldSimulation &world)
@@ -176,7 +178,7 @@ Sprout::Sprout(size_t x, size_t y, size_t energy)
 {
     m_color = 0xffFFAACC;
     m_transportPolicy = TransportPolicy::Сonsumer;
-    m_energyNeed = ENERGY_NEED;
+    m_energyNeed = DigitalEvolution::ENERGY_NEED;
 }
 
 void Sprout::act(WorldSimulation &world)
@@ -190,7 +192,7 @@ Transport::Transport(size_t x, size_t y, size_t energy)
 {
     m_color = 0xffb3b3b3;
     m_transportPolicy = TransportPolicy::Transporter;
-    m_energyNeed = ENERGY_NEED;
+    m_energyNeed = DigitalEvolution::ENERGY_NEED;
 }
 
 void Transport::act(WorldSimulation &world)

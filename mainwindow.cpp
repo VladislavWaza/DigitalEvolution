@@ -6,9 +6,7 @@
 #include <QGraphicsPixmapItem>
 
 
-using DigitalEvolution::Cell;
 using DigitalEvolution::WorldSimulation;
-using DigitalEvolution::Sprout;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

@@ -11,6 +11,8 @@
 namespace DigitalEvolution
 {
 
+const int ENERGY_START = 200;
+
 struct Region
 {
 };
@@ -44,6 +46,7 @@ public:
 
     Cell *getCell(int x, int y) { return m_cells[y * m_width + x]; }
     Cell *getCell(const QPoint& point) { return m_cells[point.y() * m_width + point.x()]; }
+    void preEraseCell(int x, int y) { m_cells[y * m_width + x] = nullptr; }
 
 private:
     static std::vector<QPoint> sample(std::vector<QPoint> &seq, size_t count);
