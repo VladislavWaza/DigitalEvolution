@@ -8,9 +8,24 @@
 namespace DigitalEvolution
 {
 
+const int ENERGY_NEED = 20;
+const float TRANSPORT_ENERGY_PROPORTION = 1;// доля энергии к передаче
+
+
 class WorldSimulation;
 
 /*
+ * Общий алгоритм работы клетки:
+ * 1. обновить буфер
+ * 3. выполнять действия (делится, вырабатывать энергию)
+ * 4. затратить энергию на жизнь
+ * 5. проверить жив ли
+ * 6. обновить правила транпонтировки
+ * 7. передать энергию (всю что есть)
+ *
+ * Если клетку убивают снаружи, то это надо немедленно обработать
+ *
+ *
  * Передача энергии осуществляется через буфер:
  * - энергия кладется в буфер
  * - записывается номер итерации, на котором положили энергию
@@ -47,14 +62,14 @@ class WorldSimulation;
  *    2. При смерти все как обычно
  *    3. Если есть кому передвать энергию, то передает
  *    4. Если есть от кого получать энергию, то просим передать
- *    ? Если подключающаяся клетка - стебель и целевая тоже , то двухстороняя передача
+ *    ? Если подключающаяся клетка - стебель и целевая тоже, то двухстороняя передача
  *
  */
 class Cell
 {
 public:
 
-    enum class Direction : int {None = -1, Left = 0, Up = 1, Rigth = 2, Down = 3};
+    enum class Direction : int {None = -1, Left = 0, Up = 1, Right = 2, Down = 3};
     enum class TransportPolicy {None, Сonsumer, Source, Transporter};
 
     Cell(size_t x, size_t y, size_t energy = 0);
@@ -63,9 +78,11 @@ public:
     QRgb color() const {return m_color;}
 
     void doAct(WorldSimulation& world);
-    void addEnergyToBuffer(size_t energy, size_t curStepNumber);
 
 protected:
+    void addEnergyToBuffer(size_t energy, size_t curStepNumber);
+    void transportEnergy(WorldSimulation& world);
+    void die();
     virtual void act(WorldSimulation& world) = 0;
 
     size_t m_x = 0;
@@ -75,12 +92,15 @@ protected:
     int m_energyBuffer = 0;
     size_t m_stepEnergyBufferUpdate = 0;
 
+    int m_energyNeed = 0;
     QRgb m_color = 0xffaaaaaa;
 
     uint8_t m_energyTo[4] = {0, 0, 0, 0};
     Direction m_parentDirection = Direction::None;
     TransportPolicy m_transportPolicy = TransportPolicy::None;
 };
+
+/******************************************************************************/
 
 class Leaf : public Cell
 {
@@ -92,6 +112,8 @@ protected:
     void act(WorldSimulation& world) override;
 };
 
+/******************************************************************************/
+
 class Transport : public Cell
 {
 public:
@@ -101,6 +123,8 @@ public:
 protected:
     void act(WorldSimulation& world) override;
 };
+
+/******************************************************************************/
 
 class Sprout : public Cell
 {

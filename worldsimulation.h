@@ -42,6 +42,9 @@ public:
     QPoint getDownPos(int x, int y) const;
     QPoint returnPosToWorld(int x, int y) const;
 
+    Cell *getCell(int x, int y) { return m_cells[y * m_width + x]; }
+    Cell *getCell(const QPoint& point) { return m_cells[point.y() * m_width + point.x()]; }
+
 private:
     static std::vector<QPoint> sample(std::vector<QPoint> &seq, size_t count);
 
