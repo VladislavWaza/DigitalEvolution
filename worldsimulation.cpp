@@ -77,7 +77,8 @@ void WorldSimulation::run()
         cell->doAct(*this);
         if (cell->isDead())
         {
-            m_cells[cell->y() * m_width + cell->x()] = nullptr;
+            if (m_cells[cell->y() * m_width + cell->x()] == cell.get())
+                m_cells[cell->y() * m_width + cell->x()] = nullptr;
             m_curCell = m_cellOrder.erase(m_curCell);
         }
         else
@@ -155,7 +156,8 @@ Cell *WorldSimulation::insertCellBeforeCur(std::unique_ptr<Cell> &&cell)
     if (cell && m_cells[cell->y() * m_width + cell->x()] == nullptr)
     {
         auto& newCell = *m_cellOrder.insert(m_curCell, std::move(cell));
-        m_cells[newCell->y() * m_width + newCell->x()] = newCell.get();
+        if (newCell)
+            m_cells[newCell->y() * m_width + newCell->x()] = newCell.get();
         return newCell.get();
     }
     return nullptr;
