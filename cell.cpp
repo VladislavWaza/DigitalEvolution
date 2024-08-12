@@ -15,12 +15,7 @@ void Cell::doAct(WorldSimulation &world)
         return;
 
     // Обновляем буфер энергии
-    if (world.stepsNumber() > m_stepEnergyBufferUpdate)
-    {
-        m_energy += m_energyBuffer;
-        m_energyBuffer = 0;
-        m_stepEnergyBufferUpdate = 0;
-    }
+    m_energy += m_energyBuffer.get(world.stepsNumber());
 
     // Выполняем действия
     act(world);
@@ -41,20 +36,12 @@ void Cell::doAct(WorldSimulation &world)
     // if (m_isDead) return;
 }
 
-void Cell::addEnergyToBuffer(size_t energy, size_t curStepNumber)
+void Cell::addEnergyToBuffer(int energy, size_t curStepNumber)
 {
-    if (curStepNumber > m_stepEnergyBufferUpdate)
-    {
-        m_energy += m_energyBuffer;
-        m_energyBuffer = energy;
-        m_stepEnergyBufferUpdate = curStepNumber;
-    }
-    else if (curStepNumber == m_stepEnergyBufferUpdate)
-    {
-        m_energyBuffer += energy;
-    }
-    else
-        throw std::runtime_error("curStepNumber less then stepEnergyBufferUpdate in Cell::addEnergyToBuffer");
+    // сбрасываем буфер если он еще не сброшен
+    m_energy += m_energyBuffer.get(curStepNumber);
+    // добавляем
+    m_energyBuffer.add(curStepNumber, energy);
 }
 
 void Cell::transportEnergy(WorldSimulation &world)

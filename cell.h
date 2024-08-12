@@ -1,7 +1,7 @@
 #ifndef CELL_H
 #define CELL_H
 
-#include "stdlib.h"
+#include "cellsparts.h"
 
 #include <QColor>
 
@@ -107,7 +107,7 @@ public:
     void doAct(WorldSimulation& world);
 
 protected:
-    void addEnergyToBuffer(size_t energy, size_t curStepNumber);
+    void addEnergyToBuffer(int energy, size_t curStepNumber);
     void transportEnergy(WorldSimulation& world);
     void die(WorldSimulation &world);
     void yourNeighborDied(Direction neighborDirection);
@@ -117,8 +117,7 @@ protected:
     size_t m_y = 0;
 
     int m_energy = 0;
-    int m_energyBuffer = 0;
-    size_t m_stepEnergyBufferUpdate = 0;
+    EnergyBuffer m_energyBuffer;
     bool m_isDead = false;
 
     int m_energyNeed = 0;
