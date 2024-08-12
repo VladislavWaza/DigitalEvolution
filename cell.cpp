@@ -24,6 +24,7 @@ void Cell::doAct(WorldSimulation &world)
 
     // Выполняем действия
     act(world);
+    if (m_isDead) return;
 
     // Тратим энергию на жизнь
     m_energy -= m_energyNeed;
@@ -77,6 +78,37 @@ void Cell::transportEnergy(WorldSimulation &world)
         // передем энергию родителю
         m_energyTo[static_cast<int>(m_parentDirection)] = 1;
         ++m_energyToSum;
+
+        Cell* parent = nullptr;
+        Direction myDir = Direction::None;
+        // при этом надо родителю отменить передачу
+        if (m_parentDirection == Direction::Left)
+        {
+            myDir = Direction::Right;
+            parent = world.getCell(world.getLeftPos(m_x, m_y));
+        }
+        else if (m_parentDirection == Direction::Up)
+        {
+            myDir = Direction::Down;
+            parent = world.getCell(world.getUpPos(m_x, m_y));
+        }
+        else if (m_parentDirection == Direction::Down)
+        {
+            myDir = Direction::Up;
+            parent = world.getCell(world.getDownPos(m_x, m_y));
+        }
+        else if (m_parentDirection == Direction::Right)
+        {
+            myDir = Direction::Left;
+            parent = world.getCell(world.getRightPos(m_x, m_y));
+        }
+        if (!parent) throw std::runtime_error("parent nullptr");
+        if (parent->isDead()) throw std::runtime_error("parent dead");
+        if (parent->m_energyTo[static_cast<int>(myDir)] != 0)
+        {
+            parent->m_energyTo[static_cast<int>(myDir)] = 0;
+            --(parent->m_energyToSum);
+        }
     }
 
     // Если есть куда передавать энергию, то передаем
@@ -147,7 +179,11 @@ void Cell::yourNeighborDied(Direction neighborDirection)
         throw std::runtime_error("unidentified neighborDirection");
     if (m_parentDirection == neighborDirection)
         m_parentDirection = Direction::None;
-    m_energyTo[static_cast<int>(neighborDirection)] = 0;
+    if (m_energyTo[static_cast<int>(neighborDirection)] != 0)
+    {
+        m_energyTo[static_cast<int>(neighborDirection)] = 0;
+        --m_energyToSum;
+    }
 }
 
 /******************************************************************************/
@@ -190,7 +226,6 @@ Transport::Transport(size_t x, size_t y, size_t energy)
 
 void Transport::act(WorldSimulation &world)
 {
-
 }
 
 }
