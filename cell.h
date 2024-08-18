@@ -8,10 +8,6 @@
 namespace DigitalEvolution
 {
 
-const int ENERGY_NEED = 20;
-const float TRANSPORT_ENERGY_PROPORTION = 1;// доля энергии к передаче
-
-
 class WorldSimulation;
 
 /*
@@ -91,11 +87,8 @@ class WorldSimulation;
  */
 class Cell
 {
+    friend void RoutingTable::update(WorldSimulation &world, int x, int y);
 public:
-
-    enum class Direction : int {None = -1, Left = 0, Up = 1, Right = 2, Down = 3};
-    enum class TransportPolicy {None, Сonsumer, Source, Transporter};
-
     Cell(size_t x, size_t y, size_t energy = 0);
     virtual ~Cell() = default;
 
@@ -110,23 +103,20 @@ protected:
     void addEnergyToBuffer(int energy, size_t curStepNumber);
     void transportEnergy(WorldSimulation& world);
     void die(WorldSimulation &world);
-    void yourNeighborDied(Direction neighborDirection);
+    void onNeighborDied(Direction neighborDirection);
     virtual void act(WorldSimulation& world) = 0;
 
     size_t m_x = 0;
     size_t m_y = 0;
 
-    int m_energy = 0;
-    EnergyBuffer m_energyBuffer;
     bool m_isDead = false;
 
+    int m_energy = 0;
     int m_energyNeed = 0;
-    QRgb m_color = 0xffaaaaaa;
+    EnergyBuffer m_energyBuffer;
+    RoutingTable m_routingTable;
 
-    uint8_t m_energyTo[4] = {0, 0, 0, 0};
-    int m_energyToSum = 0;
-    Direction m_parentDirection = Direction::None;
-    TransportPolicy m_transportPolicy = TransportPolicy::None;
+    QRgb m_color = 0xffaaaaaa;
 };
 
 /******************************************************************************/
