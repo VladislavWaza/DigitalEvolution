@@ -30,7 +30,7 @@ RoutingTable::RoutingTable(Direction parentDirection, TransportPolicy transportP
 bool RoutingTable::shouldDie() const
 {
     // Если передвать некуда и родителя нет
-    if (m_energyToSum == 0 && m_parentDirection == Direction::None &&
+    if (m_weightsSum == 0 && m_parentDirection == Direction::None &&
             //Если клетка транспортая или клетка-источник, то умереть так как смысл жизни потерян
             (m_transportPolicy == TransportPolicy::Transporter || m_transportPolicy == TransportPolicy::Source))
     {
@@ -42,37 +42,30 @@ bool RoutingTable::shouldDie() const
 void RoutingTable::update(WorldSimulation &world, int x, int y)
 {
     // Eсли передвать некуда и родитель есть и клетка сама не потребитель
-    if (m_energyToSum == 0 && m_parentDirection != Direction::None && m_transportPolicy != TransportPolicy::Сonsumer)
+    if (m_weightsSum == 0 && m_parentDirection != Direction::None && m_transportPolicy != TransportPolicy::Сonsumer)
     {
         // передем энергию родителю
-        m_energyTo[static_cast<int>(m_parentDirection)] = 1;
-        ++m_energyToSum;
+        setWeight(m_parentDirection, 1);
 
         // при этом надо родителю отменить передачу
-        Direction myDir = mirrorDirection(m_parentDirection);
         Cell* parent = world.getCell(world.getNeighborPos(x, y, m_parentDirection));
         if (!parent) throw std::runtime_error("parent nullptr");
         if (parent->isDead()) throw std::runtime_error("parent dead");
 
-        RoutingTable& parentRoutingTable = parent->m_routingTable;
-
-        if (parentRoutingTable.m_energyTo[static_cast<int>(myDir)] != 0)
-        {
-            parentRoutingTable.m_energyTo[static_cast<int>(myDir)] = 0;
-            --(parentRoutingTable.m_energyToSum);
-        }
+        parent->m_routingTable.resetWeight(mirrorDirection(m_parentDirection));
     }
 }
 
-void RoutingTable::onNeighborDied(Direction neighborDirection)
+void RoutingTable::resetWeight(Direction direction)
 {
-    if (m_parentDirection == neighborDirection)
-        m_parentDirection = Direction::None;
-    if (m_energyTo[static_cast<int>(neighborDirection)] != 0)
-    {
-        m_energyTo[static_cast<int>(neighborDirection)] = 0;
-        --m_energyToSum;
-    }
+    m_weightsSum -= m_weights[static_cast<int>(direction)];
+    m_weights[static_cast<int>(direction)] = 0;
+}
+
+void RoutingTable::setWeight(Direction direction, uint8_t weight)
+{
+    m_weightsSum += weight - m_weights[static_cast<int>(direction)];
+    m_weights[static_cast<int>(direction)] = weight;
 }
 
 }

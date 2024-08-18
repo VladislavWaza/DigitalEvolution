@@ -54,9 +54,9 @@ void Cell::transportEnergy(WorldSimulation &world)
     m_routingTable.update(world, m_x, m_y);
 
     // Если есть куда передавать энергию, то передаем
-    if (m_routingTable.energyToSum() != 0)
+    if (m_routingTable.weightsSum() != 0)
     {
-        int energyToTransfer = m_energy / m_routingTable.energyToSum() * DigitalEvolution::TRANSPORT_ENERGY_PROPORTION;
+        int energyToTransfer = m_energy / m_routingTable.weightsSum() * DigitalEvolution::TRANSPORT_ENERGY_PROPORTION;
         if (energyToTransfer < 0)
             throw std::runtime_error("negative energyToTransfer");
         m_energy = 0;
@@ -64,7 +64,7 @@ void Cell::transportEnergy(WorldSimulation &world)
         Cell* cell = nullptr;
         for (int i = static_cast<int>(Direction::Left); i <= static_cast<int>(Direction::Down); ++i)
         {
-            if (m_routingTable.energyTo(static_cast<Direction>(i)) != 0)
+            if (m_routingTable.weight(static_cast<Direction>(i)) != 0)
             {
                 cell = world.getCell(world.getNeighborPos(m_x, m_y, static_cast<Direction>(i)));
                 if (cell)
@@ -101,7 +101,9 @@ void Cell::onNeighborDied(Direction neighborDirection)
 {
     if (neighborDirection == Direction::None)
         throw std::runtime_error("unidentified neighborDirection");
-    m_routingTable.onNeighborDied(neighborDirection);
+    if (m_routingTable.parentDirection() == neighborDirection)
+        m_routingTable.setParentDirection(Direction::None);
+    m_routingTable.resetWeight(neighborDirection);
 }
 
 /******************************************************************************/

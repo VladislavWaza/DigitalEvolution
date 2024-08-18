@@ -31,16 +31,20 @@ public:
     RoutingTable() = default;
     RoutingTable(Direction parentDirection, TransportPolicy transportPolicy);
 
+    Direction parentDirection() const {return m_parentDirection;}
+    void setParentDirection(Direction direction) {m_parentDirection = direction;}
     void setTransportPolicy(TransportPolicy transportPolicy) {m_transportPolicy = transportPolicy;}
-    int energyToSum() const {return m_energyToSum;}
-    uint8_t energyTo(Direction direction) const {return m_energyTo[static_cast<int>(direction)];}
+    int weightsSum() const {return m_weightsSum;}
+    uint8_t weight(Direction direction) const {return m_weights[static_cast<int>(direction)];}
+
+    void resetWeight(Direction direction);
+    void setWeight(Direction direction, uint8_t weight);
 
     bool shouldDie() const;
     void update(WorldSimulation& world, int x, int y);
-    void onNeighborDied(Direction neighborDirection);
 private:
-    uint8_t m_energyTo[4] = {0, 0, 0, 0};
-    int m_energyToSum = 0;
+    uint8_t m_weights[4] = {0, 0, 0, 0};
+    int m_weightsSum = 0;
     Direction m_parentDirection = Direction::None;
     TransportPolicy m_transportPolicy = TransportPolicy::None;
 };
