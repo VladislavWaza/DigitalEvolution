@@ -140,6 +140,20 @@ QPoint WorldSimulation::getDownPos(int x, int y) const
     return returnPosToWorld(x, y);
 }
 
+QPoint WorldSimulation::getNeighborPos(int x, int y, Direction dir) const
+{
+    if (dir == Direction::Left)
+        return getLeftPos(x, y);
+    else if (dir == Direction::Up)
+        return getUpPos(x, y);
+    else if (dir == Direction::Right)
+        return getRightPos(x, y);
+    else if (dir == Direction::Down)
+        return getDownPos(x, y);
+    throw std::runtime_error("None direction in WorldSimulation::getPos");
+    return QPoint();
+}
+
 QPoint WorldSimulation::returnPosToWorld(int x, int y) const
 {
     x %= m_width;

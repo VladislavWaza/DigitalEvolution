@@ -11,8 +11,6 @@
 namespace DigitalEvolution
 {
 
-const int ENERGY_START = 200;
-
 struct Region
 {
 };
@@ -42,6 +40,7 @@ public:
     QPoint getRightPos(int x, int y) const;
     QPoint getUpPos(int x, int y) const;
     QPoint getDownPos(int x, int y) const;
+    QPoint getNeighborPos(int x, int y, Direction dir) const;
     QPoint returnPosToWorld(int x, int y) const;
 
     Cell *getCell(int x, int y) { return m_cells[y * m_width + x]; }
