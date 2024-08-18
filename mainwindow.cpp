@@ -67,6 +67,7 @@ void MainWindow::on_createWorld_clicked()
     m_scene->setSceneRect(0, 0, m_world->imageWidth(), m_world->imageHeight());
     this->addGrid();
 
+    setDisplayMode();
     m_pixmapItem = m_scene->addPixmap(QPixmap::fromImage(m_world->getImage()));
 
     setEnabledWorldChangeInterface(true);
@@ -95,6 +96,7 @@ void MainWindow::run()
     m_world->run();
     qDebug() << "run(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
     ms = QTime::currentTime().msecsSinceStartOfDay();
+    setDisplayMode();
     m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
     qDebug() << "setPixmap(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
 
@@ -143,5 +145,13 @@ void MainWindow::on_addCells_clicked()
     qDebug() << "addCells(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
     m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
     m_ui->cellsNumber->setNum(static_cast<int>(m_world->cellsCount()));
+}
+
+void MainWindow::setDisplayMode()
+{
+    if (m_ui->cellTypeMode->isChecked())
+        m_world->setDisplayMode(DigitalEvolution::WorldSimulation::DisplayMode::CellType);
+    else if (m_ui->energyMode->isChecked())
+        m_world->setDisplayMode(DigitalEvolution::WorldSimulation::DisplayMode::Energy);
 }
 

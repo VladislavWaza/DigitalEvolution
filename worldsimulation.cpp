@@ -33,7 +33,18 @@ QImage WorldSimulation::getImage()
         for (int x = 0; x < m_width; ++x)
         {
             const size_t cellIndex = y * m_width + x;
-            QRgb color = m_cells[cellIndex] ? m_cells[cellIndex]->color() : 0xffffffff;
+            QRgb color = 0xffffffff;
+            if (m_cells[cellIndex])
+            {
+                if (m_displayMode == DisplayMode::CellType)
+                    color = m_cells[cellIndex]->color();
+                else if (m_displayMode == DisplayMode::Energy)
+                {
+                    int energy = m_cells[cellIndex]->allEnergy();
+                    color = energy > TEMP_MAX_ENERGY ? 0xff0000ff :
+                                                       qRgb(0, 0, energy / static_cast<double>(TEMP_MAX_ENERGY) * 256);
+                }
+            }
 
             if (m_detailLevel == CellsDetailLevel::OnePixel)
                 data[y * m_image.width() + x] = color;

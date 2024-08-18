@@ -32,6 +32,8 @@ private slots:
     void on_addCells_clicked();
 
 private:
+    void setDisplayMode();
+
     void addGrid();
 
     void setEnabledWorldChangeInterface(bool x);

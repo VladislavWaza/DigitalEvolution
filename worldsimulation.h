@@ -19,6 +19,7 @@ class WorldSimulation
 {
 public:
     enum class CellsDetailLevel : size_t {OnePixel = 1, Square3x3 = 3, Square5x5 = 5};
+    enum class DisplayMode {CellType, Energy};
 
     WorldSimulation(int worldWidth, int worldHidth, CellsDetailLevel detailLevel = CellsDetailLevel::OnePixel);
 
@@ -31,6 +32,8 @@ public:
     size_t cellSize() const {return static_cast<size_t>(m_detailLevel);}
 
     size_t cellsCount() const {return m_cellOrder.size();}
+
+    void setDisplayMode(DisplayMode displayMode) {m_displayMode = displayMode;}
 
     QImage getImage();
     void run();
@@ -55,7 +58,9 @@ private:
     int m_height = 0;
     size_t m_stepsNumber = 0;
 
-    CellsDetailLevel m_detailLevel;
+    DisplayMode m_displayMode = DisplayMode::CellType;
+    CellsDetailLevel m_detailLevel = CellsDetailLevel::OnePixel;
+
     std::vector<Region> m_regions;
     std::list<std::unique_ptr<Cell>> m_cellOrder;
     std::list<std::unique_ptr<Cell>>::iterator m_curCell;

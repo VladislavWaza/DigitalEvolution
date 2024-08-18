@@ -76,12 +76,15 @@ class WorldSimulation;
  * - Опицанальные веса m_energyTo
  *
  * - Адреса соседей для отрисовки связей
- * - отрисвока энергий
+ * - смена режима в паузе и при добавлении клеток
+ * - режим одного шага
  * - Номер клана
  * - несколько способов передачи энергии
  * - старость клеток
  * - ограничение числа делений
  * - статический генератор
+ * - если долго не даешь потомство то умирай
+ * - TEMP_PARAM
  */
 class Cell
 {
@@ -92,6 +95,8 @@ public:
 
     bool isDead() const {return m_isDead;}
     QRgb color() const {return m_color;}
+    int energy() const {return m_energy;}
+    int allEnergy() const {return m_energy + m_energyBuffer.get();}
     size_t x() const {return m_x;}
     size_t y() const {return m_y;}
 

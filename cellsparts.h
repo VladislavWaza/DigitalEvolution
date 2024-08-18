@@ -16,6 +16,8 @@ class EnergyBuffer
 public:
     EnergyBuffer() = default;
 
+    int get() const {return m_energyBuffer;}
+
     int get(size_t curStep);
     void add(size_t curStep, int energy);
 

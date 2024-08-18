@@ -58,10 +58,11 @@ void Cell::transportEnergy(WorldSimulation &world)
     // Если есть куда передавать энергию, то передаем
     if (m_routingTable.weightsSum() != 0)
     {
-        int energyToTransfer = m_energy / m_routingTable.weightsSum() * DigitalEvolution::TRANSPORT_ENERGY_PROPORTION;
+        int energyToTransfer = m_energy * DigitalEvolution::TRANSPORT_ENERGY_PROPORTION;
+        m_energy -= energyToTransfer;
+        energyToTransfer /= m_routingTable.weightsSum();
         if (energyToTransfer < 0)
             throw std::runtime_error("negative energyToTransfer");
-        m_energy = 0;
 
         Cell* cell = nullptr;
         for (int i = static_cast<int>(Direction::Left); i <= static_cast<int>(Direction::Down); ++i)
