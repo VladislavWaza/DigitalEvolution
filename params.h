@@ -4,9 +4,11 @@
 namespace DigitalEvolution
 {
 
-const int ENERGY_NEED = 20;
+const int ENERGY_NEED = 5;
 const float TRANSPORT_ENERGY_PROPORTION = 1;// доля энергии к передаче
 const int ENERGY_START = 2000;
+const int ENERGY_NEED_TO_BORN = 10;
+const int ENERGY_GENERATE = 120;
 
 enum class Direction : int {None = -1, Left = 0, Up = 1, Right = 2, Down = 3};
 enum class TransportPolicy {None, Сonsumer, Source, Transporter};

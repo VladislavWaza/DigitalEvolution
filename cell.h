@@ -97,6 +97,7 @@ public:
 
     void doAct(WorldSimulation& world);
 
+    void setWeight(Direction direction, uint8_t weight) {m_routingTable.setWeight(direction, weight);}
 protected:
     void addEnergyToBuffer(int energy, size_t curStepNumber);
     void transportEnergy(WorldSimulation& world);
@@ -122,7 +123,7 @@ protected:
 class Leaf : public Cell
 {
 public:
-    Leaf(size_t x, size_t y, size_t energy = 0);
+    Leaf(size_t x, size_t y, size_t energy, Direction parent);
     ~Leaf() = default;
 
 protected:
@@ -134,7 +135,7 @@ protected:
 class Transport : public Cell
 {
 public:
-    Transport(size_t x, size_t y, size_t energy = 0);
+    Transport(size_t x, size_t y, size_t energy);
     ~Transport() = default;
 
 protected:
@@ -146,11 +147,17 @@ protected:
 class Sprout : public Cell
 {
 public:
-    Sprout(size_t x, size_t y, size_t energy = 0);
+    Sprout(size_t x, size_t y, size_t energy);
+    Sprout(size_t x, size_t y, size_t energy, Direction direction, Direction parent,
+           size_t activeGen, std::array<uint8_t, 9> genom);
     ~Sprout() = default;
 
 protected:
     void act(WorldSimulation& world) override;
+
+    std::array<uint8_t, 9> m_genom;
+    int m_activeGen = 0;
+    Direction m_direction = Direction::None;
 };
 
 }
