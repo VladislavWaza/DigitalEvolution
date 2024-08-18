@@ -11,6 +11,7 @@ QMAKE_CXXFLAGS += -Wall -Wextra -Wpedantic -O2
 
 SOURCES += \
     cell.cpp \
+    cellsparts.cpp \
     graphicsviewzoom.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -18,8 +19,10 @@ SOURCES += \
 
 HEADERS += \
     cell.h \
+    cellsparts.h \
     graphicsviewzoom.h \
     mainwindow.h \
+    params.h \
     worldsimulation.h
 
 FORMS += \
