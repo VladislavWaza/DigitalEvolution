@@ -12,9 +12,6 @@ WorldSimulation::WorldSimulation(int worldWidth, int worldHidth, CellsDetailLeve
       m_regions(worldWidth * worldHidth),
       m_cells(worldWidth * worldHidth)
 {
-    if (m_width < 0 || m_height < 0)
-        throw std::runtime_error("negative dimensions of the world");
-
     m_image = QImage(m_width * static_cast<size_t>(detailLevel),
                      m_height * static_cast<size_t>(detailLevel),
                      QImage::Format_ARGB32_Premultiplied);
@@ -40,7 +37,7 @@ QImage WorldSimulation::getImage()
                     color = m_cells[cellIndex]->color();
                 else if (m_displayMode == DisplayMode::Energy)
                 {
-                    int energy = m_cells[cellIndex]->allEnergy();
+                    int energy = m_cells[cellIndex]->energyBuffer();
                     color = energy > TEMP_MAX_ENERGY ? 0xff0000ff :
                                                        qRgb(0, 0, energy / static_cast<double>(TEMP_MAX_ENERGY) * 256);
                 }
@@ -88,8 +85,12 @@ void WorldSimulation::run()
         cell->doAct(*this);
         if (cell->isDead())
         {
-            if (m_cells[cell->y() * m_width + cell->x()] == cell.get())
-                m_cells[cell->y() * m_width + cell->x()] = nullptr;
+            //удаление из m_cells происходит через preEraseCell внутри Cell
+
+            //сейчас этот код бесполезен
+            //if (m_cells[cell->y() * m_width + cell->x()] == cell.get())
+            //    m_cells[cell->y() * m_width + cell->x()] = nullptr;
+
             m_curCell = m_cellOrder.erase(m_curCell);
         }
         else
@@ -161,7 +162,9 @@ QPoint WorldSimulation::getNeighborPos(int x, int y, Direction dir) const
         return getRightPos(x, y);
     else if (dir == Direction::Down)
         return getDownPos(x, y);
-    throw std::runtime_error("None direction in WorldSimulation::getPos");
+    else
+        throw std::runtime_error("None direction in WorldSimulation::getPos");
+
     return QPoint();
 }
 

@@ -85,7 +85,12 @@ class WorldSimulation;
  * - статический генератор
  * - если долго не даешь потомство то умирай
  * - TEMP_PARAM
+ * - сам себе препятсвие
+ * - что не так с TRANSPORT_ENERGY_PROPORTION
+ * - почему умирают ветки
+ * - при изменении типа клетки проебал передачу EnergyBuffer, m_age, RoutingTable
  */
+
 class Cell
 {
     friend void RoutingTable::update(WorldSimulation &world, int x, int y);
@@ -97,12 +102,14 @@ public:
     QRgb color() const {return m_color;}
     int energy() const {return m_energy;}
     int allEnergy() const {return m_energy + m_energyBuffer.get();}
+    int energyBuffer() const {return m_energyBuffer.get();}
     size_t x() const {return m_x;}
     size_t y() const {return m_y;}
 
     void doAct(WorldSimulation& world);
 
     void setWeight(Direction direction, uint8_t weight) {m_routingTable.setWeight(direction, weight);}
+
 protected:
     void addEnergyToBuffer(int energy, size_t curStepNumber);
     void transportEnergy(WorldSimulation& world);
@@ -161,6 +168,7 @@ protected:
     void act(WorldSimulation& world) override;
 
     std::array<uint8_t, 9> m_genom;
+
     int m_activeGen = 0;
     Direction m_direction = Direction::None;
 };
