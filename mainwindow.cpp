@@ -34,6 +34,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->widthWorld->setMaximum(10000);
     m_ui->heightWorld->setMinimum(50);
     m_ui->widthWorld->setMinimum(50);
+    m_ui->heightWorld->setValue(800);
+    m_ui->widthWorld->setValue(1300);
 
     m_ui->cellsNumberToAdd->setMinimum(1);
     m_ui->cellsNumberToAdd->setMaximum(10000000);
