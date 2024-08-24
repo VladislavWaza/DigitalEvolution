@@ -56,7 +56,9 @@ private:
 
     int m_width = 0;
     int m_height = 0;
+
     size_t m_stepsNumber = 0;
+    size_t m_maxEnergy = 0;
 
     DisplayMode m_displayMode = DisplayMode::CellType;
     CellsDetailLevel m_detailLevel = CellsDetailLevel::OnePixel;
