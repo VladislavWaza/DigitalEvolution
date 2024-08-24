@@ -5,6 +5,16 @@
 namespace DigitalEvolution
 {
 
+static inline uint32_t log_2(const uint32_t x) {
+  uint32_t y;
+  asm ( "\tbsr %1, %0\n"
+      : "=r"(y)
+      : "r" (x)
+  );
+  return y;
+}
+
+
 WorldSimulation::WorldSimulation(int worldWidth, int worldHidth, CellsDetailLevel detailLevel)
     : m_width(worldWidth),
       m_height(worldHidth),
@@ -23,7 +33,7 @@ WorldSimulation::WorldSimulation(int worldWidth, int worldHidth, CellsDetailLeve
 
 QImage WorldSimulation::getImage()
 {
-    const double maxEnergyCoef = 1.0 / log(m_maxEnergy);
+    const double maxEnergyCoef = 256.0 / log(m_maxEnergy);
     QRgb* data = reinterpret_cast<QRgb*>(m_image.bits());
     const size_t imgWidth = m_image.width();
     for (int y = 0; y < m_height; ++y)
@@ -38,11 +48,11 @@ QImage WorldSimulation::getImage()
                     color = m_cells[cellIndex]->color();
                 else if (m_displayMode == DisplayMode::Energy)
                 {
-                    int blue = log(m_cells[cellIndex]->allEnergy()) * maxEnergyCoef * 256;
+                    int blue = log_2(m_cells[cellIndex]->allEnergy()) * maxEnergyCoef;
                     if (blue > 255)
-                        color = 0xff00ffff;
-                    else if (blue > 200)
-                        color = qRgb(0, blue, blue);
+                        color = 0xff0085ff;
+                    else if (blue > 180)
+                        color = qRgb(0, blue / 2, blue);
                     else
                         color = qRgb(0, 0, blue);
                 }
