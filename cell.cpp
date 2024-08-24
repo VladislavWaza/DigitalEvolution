@@ -1,10 +1,10 @@
 #include "cell.h"
 #include "worldsimulation.h"
 
-#include <QRandomGenerator>
-
 namespace DigitalEvolution
 {
+
+QRandomGenerator* Cell::s_generator = QRandomGenerator::global();
 
 Cell::Cell(size_t x, size_t y, size_t energy)
     : m_x(x), m_y(y), m_energy(energy)
@@ -134,9 +134,9 @@ Sprout::Sprout(size_t x, size_t y, size_t energy)
     m_routingTable.setTransportPolicy(TransportPolicy::Consumer);
     m_energyNeed = DigitalEvolution::ENERGY_NEED;
     for (size_t i = 0; i < m_genom.size(); ++i)
-        m_genom[i] = QRandomGenerator::global()->bounded(256);
+        m_genom[i] = s_generator->bounded(256);
     m_direction = static_cast<Direction>(
-                QRandomGenerator::global()->bounded(static_cast<int>(Direction::Left), static_cast<int>(Direction::Down)));
+                s_generator->bounded(static_cast<int>(Direction::Left), static_cast<int>(Direction::Down)));
 
 }
 
@@ -150,8 +150,8 @@ Sprout::Sprout(size_t x, size_t y, size_t energy, Direction direction, Direction
     m_direction = direction;
     m_activeGen = activeGen;
     m_genom = genom;
-    if (QRandomGenerator::global()->bounded(20) == 0)
-        m_genom[QRandomGenerator::global()->bounded(m_genom.size())] = QRandomGenerator::global()->bounded(256);
+    if (s_generator->bounded(20) == 0)
+        m_genom[s_generator->bounded(m_genom.size())] = s_generator->bounded(256);
 }
 
 void Sprout::act(WorldSimulation &world)

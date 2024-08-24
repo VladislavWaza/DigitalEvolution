@@ -4,6 +4,7 @@
 #include "cellsparts.h"
 
 #include <QColor>
+#include <QRandomGenerator>
 
 namespace DigitalEvolution
 {
@@ -83,7 +84,6 @@ class Sprout;
  * - несколько способов передачи энергии
  * - старость клеток
  * - ограничение числа делений
- * - статический генератор
  * - TEMP_PARAM
  * - адектватно сделать атаку
  */
@@ -112,6 +112,8 @@ public:
     void setWeight(Direction direction, uint8_t weight) {m_routingTable.setWeight(direction, weight);}
 
 protected:
+    static QRandomGenerator *s_generator;
+
     void addEnergyToBuffer(int energy, size_t curStepNumber);
     void transportEnergy(WorldSimulation& world);
     void die(WorldSimulation &world);
