@@ -72,6 +72,8 @@ void Cell::transportEnergy(WorldSimulation &world)
                 cell = world.getCell(world.getNeighborPos(m_x, m_y, static_cast<Direction>(i)));
                 if (cell)
                     cell->addEnergyToBuffer(energyToTransfer, world.stepsNumber());
+                else
+                    throw std::runtime_error("nullptr cell in transportEnergy");
             }
         }
     }
@@ -80,21 +82,13 @@ void Cell::transportEnergy(WorldSimulation &world)
 void Cell::die(WorldSimulation &world)
 {
     Cell* cell = nullptr;
-    cell = world.getCell(world.getLeftPos(m_x, m_y));
-    if (cell)
-        cell->onNeighborDied(Direction::Right);
 
-    cell = world.getCell(world.getRightPos(m_x, m_y));
-    if (cell)
-        cell->onNeighborDied(Direction::Left);
-
-    cell = world.getCell(world.getUpPos(m_x, m_y));
-    if (cell)
-        cell->onNeighborDied(Direction::Down);
-
-    cell = world.getCell(world.getDownPos(m_x, m_y));
-    if (cell)
-        cell->onNeighborDied(Direction::Up);
+    for (int i = static_cast<int>(Direction::Left); i <= static_cast<int>(Direction::Down); ++i)
+    {
+        Direction direction = static_cast<Direction>(i);
+        cell = world.getCell(world.getNeighborPos(m_x, m_y, direction));
+        if (cell) cell->onNeighborDied(mirrorDirection(direction));
+    }
 
     m_isDead = true;
     world.preEraseCell(m_x, m_y);
@@ -102,8 +96,6 @@ void Cell::die(WorldSimulation &world)
 
 void Cell::onNeighborDied(Direction neighborDirection)
 {
-    if (neighborDirection == Direction::None)
-        throw std::runtime_error("unidentified neighborDirection");
     if (m_routingTable.parentDirection() == neighborDirection)
         m_routingTable.setParentDirection(Direction::None);
     m_routingTable.resetWeight(neighborDirection);
@@ -200,7 +192,6 @@ void Sprout::act(WorldSimulation &world)
     else
         throw std::runtime_error("unidentified m_direction");
 
-
     for (int i = m_activeGen * 3; i < m_activeGen * 3 + 3; ++i)
         if (m_genom[i] < 120)
         {
@@ -217,7 +208,7 @@ void Sprout::act(WorldSimulation &world)
 
         m_isDead = true;
         world.preEraseCell(m_x, m_y);
-        Cell* newMe = world.insertCellBeforeCur(std::make_unique<Transport>(m_x, m_y, energyToChild));
+        Cell* newMe = world.insertCellBeforeCur(std::make_unique<Transport>(m_x, m_y, energyToChild, m_routingTable.parentDirection()));
         if (!newMe)
             throw std::runtime_error("nullptr newMe");
         for (int i = m_activeGen * 3; i < m_activeGen * 3 + 3; ++i)
@@ -234,7 +225,7 @@ void Sprout::act(WorldSimulation &world)
                 {
                     child = world.insertCellBeforeCur(std::make_unique<Sprout>(x, y, energyToChild,
                                                                                childDirection, myDirectionForChild,
-                                                                               m_genom[i] % 3, m_genom));
+                                                                               m_genom[i] % kGenCount, m_genom));
                     if (!child)
                         throw std::runtime_error("nullptr child");
                     newMe->setWeight(childDirection, 1);
@@ -253,12 +244,13 @@ void Sprout::act(WorldSimulation &world)
 
 /******************************************************************************/
 
-Transport::Transport(size_t x, size_t y, size_t energy)
+Transport::Transport(size_t x, size_t y, size_t energy, Direction parent)
     : Cell(x, y, energy)
 {
     m_color = 0xffb3b3b3;
     m_routingTable.setTransportPolicy(TransportPolicy::Transporter);
     m_energyNeed = DigitalEvolution::ENERGY_NEED;
+    m_routingTable.setParentDirection(parent);
 }
 
 void Transport::act(WorldSimulation &world)

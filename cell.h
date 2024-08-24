@@ -75,7 +75,7 @@ class WorldSimulation;
  *
  * - Опицанальные веса m_energyTo
  *
- * - Адреса соседей для отрисовки связей
+ * - Адреса соседей для отрисовки связей (адреса не нужны, достаточно направления)
  * - смена режима в паузе и при добавлении клеток
  * - режим одного шага
  * - Номер клана
@@ -83,12 +83,12 @@ class WorldSimulation;
  * - старость клеток
  * - ограничение числа делений
  * - статический генератор
- * - если долго не даешь потомство то умирай
  * - TEMP_PARAM
- * - сам себе препятсвие
- * - что не так с TRANSPORT_ENERGY_PROPORTION
- * - почему умирают ветки
+ * - адектватно сделать атаку
+ *
  * - при изменении типа клетки проебал передачу EnergyBuffer, m_age, RoutingTable
+ * - сделать конструктор для стебля от ростка
+ * - сделать смерть если долго не получается дать потомсво
  */
 
 class Cell
@@ -147,7 +147,7 @@ protected:
 class Transport : public Cell
 {
 public:
-    Transport(size_t x, size_t y, size_t energy);
+    Transport(size_t x, size_t y, size_t energy, Direction parent);
     ~Transport() = default;
 
 protected:
@@ -168,6 +168,7 @@ protected:
     void act(WorldSimulation& world) override;
 
     std::array<uint8_t, 9> m_genom;
+    const int kGenCount = 3;
 
     int m_activeGen = 0;
     Direction m_direction = Direction::None;

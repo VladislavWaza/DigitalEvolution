@@ -49,10 +49,11 @@ void RoutingTable::update(WorldSimulation &world, int x, int y)
 
         // при этом надо родителю отменить передачу
         Cell* parent = world.getCell(world.getNeighborPos(x, y, m_parentDirection));
-        if (!parent) throw std::runtime_error("parent nullptr");
-        if (parent->isDead()) throw std::runtime_error("parent dead");
 
-        parent->m_routingTable.resetWeight(mirrorDirection(m_parentDirection));
+        if (parent && !parent->isDead())
+            parent->m_routingTable.resetWeight(mirrorDirection(m_parentDirection));
+        else
+            throw std::runtime_error("parent nullptr or dead");
     }
 }
 
