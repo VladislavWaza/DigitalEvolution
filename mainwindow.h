@@ -31,6 +31,8 @@ private slots:
 
     void on_addCells_clicked();
 
+    void onOneStepClicked();
+
 private:
     void setDisplayMode();
 

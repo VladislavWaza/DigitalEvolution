@@ -14,6 +14,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     m_ui->setupUi(this);
 
+    //соединяем кнопку исполнения одного шага со слотом
+    connect(m_ui->oneStep, &QPushButton::clicked, this, &MainWindow::onOneStepClicked);
+
     //соединяем таймер и выполнение геномов
     connect(&m_timer, &QTimer::timeout, this, &MainWindow::run);
 
@@ -74,12 +77,14 @@ void MainWindow::on_createWorld_clicked()
 
     setEnabledWorldChangeInterface(true);
     m_ui->start->setEnabled(true);
+    m_ui->oneStep->setEnabled(true);
 }
 
 void MainWindow::on_start_clicked()
 {
     if (m_ui->start->text() == "Запустить")
     {
+        m_ui->oneStep->setEnabled(false);
         setEnabledWorldChangeInterface(false);
         m_ui->start->setText("Пауза");
         m_timer.start(k_timerDelay);
@@ -87,6 +92,7 @@ void MainWindow::on_start_clicked()
     else
     {
         m_timer.stop();
+        m_ui->oneStep->setEnabled(true);
         setEnabledWorldChangeInterface(true);
         m_ui->start->setText("Запустить");
     }
@@ -147,6 +153,15 @@ void MainWindow::on_addCells_clicked()
     qDebug() << "addCells(): " << QTime::currentTime().msecsSinceStartOfDay() - ms;
     m_pixmapItem->setPixmap(QPixmap::fromImage(m_world->getImage()));
     m_ui->cellsNumber->setNum(static_cast<int>(m_world->cellsCount()));
+}
+
+void MainWindow::onOneStepClicked()
+{
+    m_ui->start->setEnabled(false);
+    setEnabledWorldChangeInterface(false);
+    run();
+    setEnabledWorldChangeInterface(true);
+    m_ui->start->setEnabled(true);
 }
 
 void MainWindow::setDisplayMode()
