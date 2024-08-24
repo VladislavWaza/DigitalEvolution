@@ -23,7 +23,7 @@ WorldSimulation::WorldSimulation(int worldWidth, int worldHidth, CellsDetailLeve
 
 QImage WorldSimulation::getImage()
 {
-    double maxEnergyLog = log(m_maxEnergy);
+    const double maxEnergyCoef = 1.0 / log(m_maxEnergy);
     QRgb* data = reinterpret_cast<QRgb*>(m_image.bits());
     const size_t imgWidth = m_image.width();
     for (int y = 0; y < m_height; ++y)
@@ -38,9 +38,13 @@ QImage WorldSimulation::getImage()
                     color = m_cells[cellIndex]->color();
                 else if (m_displayMode == DisplayMode::Energy)
                 {
-                    double energyLog = log(m_cells[cellIndex]->allEnergy());
-                    color = energyLog > maxEnergyLog ? 0xff0000ff :
-                                                       qRgb(0, 0, energyLog / maxEnergyLog * 256);
+                    int blue = log(m_cells[cellIndex]->allEnergy()) * maxEnergyCoef * 256;
+                    if (blue > 255)
+                        color = 0xff00ffff;
+                    else if (blue > 200)
+                        color = qRgb(0, blue, blue);
+                    else
+                        color = qRgb(0, 0, blue);
                 }
             }
 
