@@ -18,7 +18,7 @@ struct Region
 class WorldSimulation
 {
 public:
-    enum class CellsDetailLevel : size_t {OnePixel = 1, Square3x3 = 3, Square5x5 = 5};
+    enum class CellsDetailLevel : size_t {OnePixel = 1, Square3x3 = 3};
     enum class DisplayMode {CellType, Energy};
 
     WorldSimulation(int worldWidth, int worldHidth, CellsDetailLevel detailLevel = CellsDetailLevel::OnePixel);

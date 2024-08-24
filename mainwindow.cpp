@@ -45,7 +45,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_ui->detailLevel->addItem("1 пиксель на клетку");
     m_ui->detailLevel->addItem("9 пикселей на клетку");
-    m_ui->detailLevel->addItem("25 пикселей на клетку");
 
     m_ms = 0;
 }
@@ -65,8 +64,6 @@ void MainWindow::on_createWorld_clicked()
         cellsDetailLevel = WorldSimulation::CellsDetailLevel::OnePixel;
     else if (m_ui->detailLevel->currentText() == "9 пикселей на клетку")
         cellsDetailLevel = WorldSimulation::CellsDetailLevel::Square3x3;
-    else if (m_ui->detailLevel->currentText() == "25 пикселей на клетку")
-        cellsDetailLevel = WorldSimulation::CellsDetailLevel::Square5x5;
 
     m_world = std::make_unique<WorldSimulation>(m_ui->widthWorld->value(), m_ui->heightWorld->value(), cellsDetailLevel);
     m_scene->setSceneRect(0, 0, m_world->imageWidth(), m_world->imageHeight());

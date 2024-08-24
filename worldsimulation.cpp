@@ -37,7 +37,7 @@ QImage WorldSimulation::getImage()
                     color = m_cells[cellIndex]->color();
                 else if (m_displayMode == DisplayMode::Energy)
                 {
-                    int energy = m_cells[cellIndex]->bufferEnergy();
+                    int energy = m_cells[cellIndex]->allEnergy();
                     color = energy > TEMP_MAX_ENERGY ? 0xff0000ff :
                                                        qRgb(0, 0, energy / static_cast<double>(TEMP_MAX_ENERGY) * 256);
                 }
@@ -53,23 +53,6 @@ QImage WorldSimulation::getImage()
                 data[(y * factor + 1) * imgWidth + (x * factor + 1)] = color;
                 data[(y * factor + 1) * imgWidth + (x * factor + 2)] = color;
                 data[(y * factor + 2) * imgWidth + (x * factor + 1)] = color;
-            }
-            else if (m_detailLevel == CellsDetailLevel::Square5x5)
-            {
-                const size_t factor = static_cast<size_t>(CellsDetailLevel::Square5x5);
-                data[(y * factor + 0) * imgWidth + (x * factor + 2)] = color;
-                data[(y * factor + 1) * imgWidth + (x * factor + 1)] = color;
-                data[(y * factor + 1) * imgWidth + (x * factor + 2)] = color;
-                data[(y * factor + 1) * imgWidth + (x * factor + 3)] = color;
-                data[(y * factor + 2) * imgWidth + (x * factor + 0)] = color;
-                data[(y * factor + 2) * imgWidth + (x * factor + 1)] = color;
-                data[(y * factor + 2) * imgWidth + (x * factor + 2)] = color;
-                data[(y * factor + 2) * imgWidth + (x * factor + 3)] = color;
-                data[(y * factor + 2) * imgWidth + (x * factor + 4)] = color;
-                data[(y * factor + 3) * imgWidth + (x * factor + 1)] = color;
-                data[(y * factor + 3) * imgWidth + (x * factor + 2)] = color;
-                data[(y * factor + 3) * imgWidth + (x * factor + 3)] = color;
-                data[(y * factor + 4) * imgWidth + (x * factor + 2)] = color;
             }
         }
     }
