@@ -16,10 +16,10 @@ class EnergyBuffer
 public:
     EnergyBuffer() = default;
 
-    int get() const {return m_energyBuffer;}
+    int getEnergy() const {return m_energyBuffer;}
 
-    int get(size_t curStep);
-    void add(size_t curStep, int energy);
+    int pop(size_t curStep);
+    void push(size_t curStep, int energy);
 
 private:
     int m_energyBuffer = 0;

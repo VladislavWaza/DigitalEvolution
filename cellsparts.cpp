@@ -4,7 +4,7 @@
 namespace DigitalEvolution
 {
 
-int EnergyBuffer::get(size_t curStep)
+int EnergyBuffer::pop(size_t curStep)
 {
     int result = 0;
     if (curStep > m_stepEnergyBufferUpdate)
@@ -16,7 +16,7 @@ int EnergyBuffer::get(size_t curStep)
     return result;
 }
 
-void EnergyBuffer::add(size_t curStep, int energy)
+void EnergyBuffer::push(size_t curStep, int energy)
 {
     m_energyBuffer += energy;
     m_stepEnergyBufferUpdate = curStep;
@@ -42,7 +42,7 @@ bool RoutingTable::shouldDie() const
 void RoutingTable::update(WorldSimulation &world, int x, int y)
 {
     // Eсли передвать некуда и родитель есть и клетка сама не потребитель
-    if (m_weightsSum == 0 && m_parentDirection != Direction::None && m_transportPolicy != TransportPolicy::Сonsumer)
+    if (m_weightsSum == 0 && m_parentDirection != Direction::None && m_transportPolicy != TransportPolicy::Consumer)
     {
         // передем энергию родителю
         setWeight(m_parentDirection, 1);

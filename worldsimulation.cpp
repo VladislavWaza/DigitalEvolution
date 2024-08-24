@@ -37,7 +37,7 @@ QImage WorldSimulation::getImage()
                     color = m_cells[cellIndex]->color();
                 else if (m_displayMode == DisplayMode::Energy)
                 {
-                    int energy = m_cells[cellIndex]->energyBuffer();
+                    int energy = m_cells[cellIndex]->bufferEnergy();
                     color = energy > TEMP_MAX_ENERGY ? 0xff0000ff :
                                                        qRgb(0, 0, energy / static_cast<double>(TEMP_MAX_ENERGY) * 256);
                 }

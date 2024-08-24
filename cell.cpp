@@ -11,13 +11,19 @@ Cell::Cell(size_t x, size_t y, size_t energy)
 {
 }
 
+Cell::Cell(size_t x, size_t y, size_t energy, Direction parent)
+    : Cell(x, y, energy)
+{
+    m_routingTable.setParentDirection(parent);
+}
+
 void Cell::doAct(WorldSimulation &world)
 {
     if (m_isDead)
         return;
 
     // Обновляем буфер энергии
-    m_energy += m_energyBuffer.get(world.stepsNumber());
+    m_energy += m_energyBuffer.pop(world.stepsNumber());
 
     // Выполняем действия
     act(world);
@@ -25,6 +31,7 @@ void Cell::doAct(WorldSimulation &world)
 
     // Тратим энергию на жизнь
     m_energy -= m_energyNeed;
+    ++m_age;
 
     // Проверяем живы ли
     if (m_energy < 0)
@@ -41,9 +48,9 @@ void Cell::doAct(WorldSimulation &world)
 void Cell::addEnergyToBuffer(int energy, size_t curStepNumber)
 {
     // сбрасываем буфер если он еще не сброшен
-    m_energy += m_energyBuffer.get(curStepNumber);
+    m_energy += m_energyBuffer.pop(curStepNumber);
     // добавляем
-    m_energyBuffer.add(curStepNumber, energy);
+    m_energyBuffer.push(curStepNumber, energy);
 }
 
 void Cell::transportEnergy(WorldSimulation &world)
@@ -63,17 +70,19 @@ void Cell::transportEnergy(WorldSimulation &world)
         energyToTransfer /= m_routingTable.weightsSum();
         if (energyToTransfer < 0)
             throw std::runtime_error("negative energyToTransfer");
-
-        Cell* cell = nullptr;
-        for (int i = static_cast<int>(Direction::Left); i <= static_cast<int>(Direction::Down); ++i)
+        else
         {
-            if (m_routingTable.weight(static_cast<Direction>(i)) != 0)
+            Cell* cell = nullptr;
+            for (int i = static_cast<int>(Direction::Left); i <= static_cast<int>(Direction::Down); ++i)
             {
-                cell = world.getCell(world.getNeighborPos(m_x, m_y, static_cast<Direction>(i)));
-                if (cell)
-                    cell->addEnergyToBuffer(energyToTransfer, world.stepsNumber());
-                else
-                    throw std::runtime_error("nullptr cell in transportEnergy");
+                if (m_routingTable.weight(static_cast<Direction>(i)) != 0)
+                {
+                    cell = world.getCell(world.getNeighborPos(m_x, m_y, static_cast<Direction>(i)));
+                    if (cell)
+                        cell->addEnergyToBuffer(energyToTransfer, world.stepsNumber());
+                    else
+                        throw std::runtime_error("nullptr cell in transportEnergy");
+                }
             }
         }
     }
@@ -104,11 +113,10 @@ void Cell::onNeighborDied(Direction neighborDirection)
 /******************************************************************************/
 
 Leaf::Leaf(size_t x, size_t y, size_t energy, Direction parent)
-    : Cell(x, y, energy)
+    : Cell(x, y, energy, parent)
 {
     m_color = 0xff32CD32;
     m_routingTable.setTransportPolicy(TransportPolicy::Source);
-    m_routingTable.setParentDirection(parent);
     m_energyNeed = DigitalEvolution::ENERGY_NEED;
 }
 
@@ -123,7 +131,7 @@ Sprout::Sprout(size_t x, size_t y, size_t energy)
     : Cell(x, y, energy)
 {
     m_color = 0xffFFAACC;
-    m_routingTable.setTransportPolicy(TransportPolicy::Сonsumer);
+    m_routingTable.setTransportPolicy(TransportPolicy::Consumer);
     m_energyNeed = DigitalEvolution::ENERGY_NEED;
     for (size_t i = 0; i < m_genom.size(); ++i)
         m_genom[i] = QRandomGenerator::global()->bounded(256);
@@ -134,11 +142,10 @@ Sprout::Sprout(size_t x, size_t y, size_t energy)
 
 Sprout::Sprout(size_t x, size_t y, size_t energy, Direction direction, Direction parent,
                size_t activeGen, std::array<uint8_t, 9> genom)
-    : Cell(x, y, energy)
+    : Cell(x, y, energy, parent)
 {
     m_color = 0xffFFAACC;
-    m_routingTable.setTransportPolicy(TransportPolicy::Сonsumer);
-    m_routingTable.setParentDirection(parent);
+    m_routingTable.setTransportPolicy(TransportPolicy::Consumer);
     m_energyNeed = DigitalEvolution::ENERGY_NEED;
     m_direction = direction;
     m_activeGen = activeGen;
@@ -190,7 +197,10 @@ void Sprout::act(WorldSimulation &world)
         points[2] = world.getLeftPos(m_x, m_y);
     }
     else
+    {
         throw std::runtime_error("unidentified m_direction");
+        return;
+    }
 
     for (int i = m_activeGen * 3; i < m_activeGen * 3 + 3; ++i)
         if (m_genom[i] < 120)
@@ -208,9 +218,13 @@ void Sprout::act(WorldSimulation &world)
 
         m_isDead = true;
         world.preEraseCell(m_x, m_y);
-        Cell* newMe = world.insertCellBeforeCur(std::make_unique<Transport>(m_x, m_y, energyToChild, m_routingTable.parentDirection()));
+        Cell* newMe = world.insertCellBeforeCur(std::make_unique<Transport>(*this, energyToChild));
         if (!newMe)
+        {
             throw std::runtime_error("nullptr newMe");
+            return;
+        }
+
         for (int i = m_activeGen * 3; i < m_activeGen * 3 + 3; ++i)
         {
             if (world.getCell(points[i - m_activeGen * 3]) == nullptr)
@@ -240,17 +254,20 @@ void Sprout::act(WorldSimulation &world)
             }
         }
     }
+    else if (m_age >= MAX_SPROUT_AGE) die(world);
 }
 
 /******************************************************************************/
 
-Transport::Transport(size_t x, size_t y, size_t energy, Direction parent)
-    : Cell(x, y, energy)
+Transport::Transport(const Sprout &sprout, size_t newEnergy)
+    : Cell(sprout.x(), sprout.y(), newEnergy, sprout.parentDirection())
 {
     m_color = 0xffb3b3b3;
     m_routingTable.setTransportPolicy(TransportPolicy::Transporter);
     m_energyNeed = DigitalEvolution::ENERGY_NEED;
-    m_routingTable.setParentDirection(parent);
+
+    m_age = sprout.age();
+    m_energyBuffer = sprout.energyBuffer();
 }
 
 void Transport::act(WorldSimulation &world)

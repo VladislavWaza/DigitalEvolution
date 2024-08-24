@@ -9,6 +9,7 @@ namespace DigitalEvolution
 {
 
 class WorldSimulation;
+class Sprout;
 
 /*
  * Общий алгоритм работы клетки:
@@ -85,26 +86,26 @@ class WorldSimulation;
  * - статический генератор
  * - TEMP_PARAM
  * - адектватно сделать атаку
- *
- * - при изменении типа клетки проебал передачу EnergyBuffer, m_age, RoutingTable
- * - сделать конструктор для стебля от ростка
- * - сделать смерть если долго не получается дать потомсво
  */
 
 class Cell
 {
     friend void RoutingTable::update(WorldSimulation &world, int x, int y);
 public:
-    Cell(size_t x, size_t y, size_t energy = 0);
+    Cell(size_t x, size_t y, size_t energy);
+    Cell(size_t x, size_t y, size_t energy, Direction parent);
     virtual ~Cell() = default;
 
     bool isDead() const {return m_isDead;}
     QRgb color() const {return m_color;}
     int energy() const {return m_energy;}
-    int allEnergy() const {return m_energy + m_energyBuffer.get();}
-    int energyBuffer() const {return m_energyBuffer.get();}
+    int allEnergy() const {return m_energy + m_energyBuffer.getEnergy();}
+    int bufferEnergy() const {return m_energyBuffer.getEnergy();}
     size_t x() const {return m_x;}
     size_t y() const {return m_y;}
+    size_t age() const {return m_age;}
+    Direction parentDirection() const {return m_routingTable.parentDirection();}
+    EnergyBuffer energyBuffer() const {return m_energyBuffer;}
 
     void doAct(WorldSimulation& world);
 
@@ -119,6 +120,7 @@ protected:
 
     size_t m_x = 0;
     size_t m_y = 0;
+    size_t m_age = 0;
 
     bool m_isDead = false;
 
@@ -147,7 +149,7 @@ protected:
 class Transport : public Cell
 {
 public:
-    Transport(size_t x, size_t y, size_t energy, Direction parent);
+    Transport(const Sprout& sprout, size_t newEnergy);
     ~Transport() = default;
 
 protected:
